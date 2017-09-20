@@ -4,6 +4,7 @@ var request = require('request');
 var config = require('../config')
 var async = require('async');
 var manifestService = require('./ManifestService');
+var playerProfile = require('./PlayerProfileService')
 
 class ActivityMatchService {
     getActivities(activitySearchOptions, doneFn){
@@ -62,7 +63,13 @@ class ActivityMatchService {
             };
             request.get(options, (err, resp, body) => {
                 if (!err){
-                    var jsonBody = JSON.parse(body);
+                    var jsonBody = null;
+                    try{
+                        jsonBody = JSON.parse(body);
+                    }catch(e){
+                        console.log(e);
+                    }
+                    
                     if (jsonBody.Response.activities){
                         jsonBody.Response.activities.forEach(function(activity){
                             activity.characterId = req.characterId
@@ -126,10 +133,22 @@ class ActivityMatchService {
             };
             request.get(options, (err, resp, body) => {
                 if (!err){
-                    var jsonBody = JSON.parse(body);
-                    activityPostGameCarnageResults.push(jsonBody.Response);
+                    var jsonBody = null;
+                    
+                    try{
+                        jsonBody = JSON.parse(body);
+                    }catch(e){
+                        console.log(e)
+                    }
+                    if(jsonBody && jsonBody.Response){
+                        playerProfile.PlayerProfileService.appendActivityPlayersCharacterInformation(jsonBody.Response, function(err, activityDetailsWithCharacterProfiles){
+                            activityPostGameCarnageResults.push(activityDetailsWithCharacterProfiles);
+                            next();
+                        });
+                    }else{
+                        next();
+                    }
                 }
-                next();
             });
         }, function(err){
             doneFn(err, activityPostGameCarnageResults);

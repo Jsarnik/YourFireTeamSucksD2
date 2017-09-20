@@ -48,24 +48,33 @@
 				</span>
 			</div>
 			<div class="activity-info-container" ng-show="m.selectedActivity === activity || m.hoveredActivity === activity">
-				<div class="character-container" ng-repeat="character in activity.entries track by $index">
+				<div class="character-container" 
+					 ng-repeat="character in activity.entries track by $index">
 					<div class="character">
-						<img ng-src="{{const.bungieRoot}}{{character.player.destinyUserInfo.iconPath}}" />
+						<!-- <img ng-src="{{const.bungieRoot}}{{character.player.destinyUserInfo.iconPath}}" /> -->
+						<div class="medal"></div>
 						<div class="title-bar">
-							<div>
-								<span class="player-class" data-playerName="{{character.characterInfo.displayName}}">
+							<div class="display-name">
+								<div class="player-class" data-playerName="{{character.characterInfo.displayName}}">
 									{{character.player.destinyUserInfo.displayName}}
-								</span>
+								</div>
 							</div>
 							<div class="class-info">
-								<span class="character-class {{character.player.characterClass.toLowerCase()}}" data-characterClass="{{character.player.characterClass}}">
+								<!-- <span class="character-class {{character.player.characterClass.toLowerCase()}}" data-characterClass="{{character.player.characterClass}}">
 									[{{character.player.characterClass}}]
-								</span>
-								<span class="light-level">
+								</span> -->
+								<div>&#9671;</div>
+								<div class="light-level">
 									{{character.player.lightLevel}} 
-								</span>
+								</div>
 							</div>
-						</div>
+							<div class="level">
+								Level {{character.player.characterLevel}} 
+							</div>
+						</div>	
+					</div>
+					<div class="emblem-background">
+						<img ng-src="{{const.bungieRoot}}{{character.characterInfo.emblemBackgroundPath}}"></img>
 					</div>
 				</div>
 			</div>

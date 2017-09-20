@@ -62,7 +62,6 @@ angular.module('fireTeam.common')
 
 				response = response.Response;
 				response.membershipInfo = membershipModel;
-				//playerInfo
 
 				deferred.resolve(response);
 			});

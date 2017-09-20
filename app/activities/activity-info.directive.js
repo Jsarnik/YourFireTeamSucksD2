@@ -43,6 +43,8 @@ angular
 					scope.activityInfo.medalLegend = buildMedalLegend(scope.activityInfo);
 					scope.activityInfo.topMedalList = bestPlayerAlgorithm(scope.activityInfo.medalLegend);
 					updateEntryPropWithScore();
+					scope.selectPlayer(0);
+					console.log(scope.activityInfo);
 				}
 
 				function generateStatRanks(){
@@ -97,7 +99,7 @@ angular
 					angular.forEach(entriesObject.ordered, function(player){
 						player.basic.rank = rankIndex;
 						player.basic.outOf = totalMembers;
-						player.basic.className = scope.getDisplayValue(rankIndex, totalMembers)
+						player.basic.className = scope.getDisplayValue(rankIndex, totalMembers);
 						rankIndex++;
 						prevValue = prevValue == null ? player.basic.value : prevValue;
 						if(entriesObject.hasMedal === false){
@@ -105,7 +107,13 @@ angular
 						}
 						prevValue = player.basic.value;
 					});
+					//if a activity time stat no medals given
+					entriesObject.hasMedal = entriesObject.hasMedal == true ? isMedalStatOverride(entriesObject[0].basic.displayName) : false;
 					return entriesObject;
+
+					function isMedalStatOverride(statName){
+						return statName.toLowerCase().indexOf('seconds') === -1;
+					}
 
 					function areSameValues(check1, check2){
 						return check1 == check2;
@@ -259,6 +267,7 @@ function activityInfoCtrl($scope, $anchorScroll){
 	$scope.selectStat = selectStat;
 	$scope.toggleLegend = toggleLegend;
 	$scope.selectView = selectView;
+	$scope.selectPlayer = selectPlayer;
 	
 	function toggleLegend(){
 		self.m.showLegend = !self.m.showLegend;
@@ -270,6 +279,14 @@ function activityInfoCtrl($scope, $anchorScroll){
 
 	function selectStat(statIndex){
 		self.m.selectedStat = statIndex; 
+	}
+
+	function selectPlayer(playerIndex){
+		if(self.m.selectedPlayerIndex == playerIndex){
+			self.m.selectedPlayerIndex = null;
+			return;
+		}
+		self.m.selectedPlayerIndex = playerIndex;
 	}
 
 	function selectView(view){

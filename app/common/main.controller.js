@@ -482,7 +482,6 @@ angular.module('fireTeam.common')
 			m.loadingStatusMessage = 'Checking for updates to the Destiny manifest...';
 		
 			activityModelFactory.getUpdatedManifest().then(function(response){
-
 				m.loadingStatusMessage = 'Getting activity match results...';
 
 				if(response.ErrorCode){
@@ -521,6 +520,7 @@ angular.module('fireTeam.common')
 			}
 
 			angular.extend(m.fireTeamActivityResults, activityMembersMatchedResults);
+			console.log(activityMembersMatchedResults);
 			m.activitiesDisplayed = m.fireTeamActivityResults.length < m.activityLookupPerSearch ? m.fireTeamActivityResults.length : m.activityLookupPerSearch;
 			if(!m.isNewSearch){
 				m.lastSuccessSearchCriteria = m.searchCriteria;
@@ -534,7 +534,8 @@ angular.module('fireTeam.common')
 					throwError({Error: "An error occured while fetching results"});
 				}
 				m.isLoadingData = false;
-				selectActivity(response.Response);
+				$location.search('instanceId', response.Response.activityDetails.instanceId);
+				m.selectedActivity = response.Response;
 				activityResultsValidation(response.Response);
 			});
 		}

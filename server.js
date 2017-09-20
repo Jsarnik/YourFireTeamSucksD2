@@ -10,6 +10,7 @@ var timeout = require('connect-timeout');
 var config = require('./config');
 var manifestService = require('./nodeServices/ManifestService');
 var activityMatch = require('./nodeServices/ActivityMatchService');
+var playerProfile = require('./nodeServices/PlayerProfileService')
 // Create our Express application
 var app = express();
 var destinyBaseRequest = request.defaults({headers: {'X-API-Key': config.default.credentials.apiKey}});
@@ -137,11 +138,19 @@ router.get('/getPostGameCarnageReport', function(req, res, next){
           }
 
           if(jsonResponse){
-            var queryString = "SELECT DISTINCT json FROM DestinyActivityDefinition WHERE json like '%" + jsonResponse.Response.activityDetails.referenceId + "%'";
-            manifestService.ManifestService.queryManifest('world.content', queryString, function(err, activityDefinition){
-              var parsedDef = JSON.parse(activityDefinition);
-              jsonResponse.Response.definitions = parsedDef;
-              res.json(jsonResponse);
+            playerProfile.PlayerProfileService.appendActivityPlayersCharacterInformation(jsonResponse.Response, function(err, activityDetailsWithCharacterProfiles){
+              var queryString = "SELECT DISTINCT json FROM DestinyActivityDefinition WHERE json like '%" + activityDetailsWithCharacterProfiles.activityDetails.referenceId + "%'";
+              manifestService.ManifestService.queryManifest('world.content', queryString, function(err, activityDefinition){
+                var parsedDef = null;
+                try{
+                  parsedDef = JSON.parse(activityDefinition);
+                }catch(e){
+                  console.log(activityDefinition)
+                  console.log(e);
+                }
+                activityDetailsWithCharacterProfiles.definitions = parsedDef;
+                res.json(jsonResponse);
+              });
             });
           }
           else{

@@ -296,7 +296,8 @@ input.player-input {
   left: 0;
   position: absolute;
   background-image: url("http://www.bungie.net/img/theme/destiny/bgs/pgcrs/story_moon_1.jpg");
-  opacity: .5; }
+  opacity: .5;
+  background-size: cover; }
 
 .search-content {
   position: relative;
@@ -416,14 +417,45 @@ input.player-input {
   font-size: 20px;
   display: inline-block; }
 
-.activity-selection-container .activity-selection .character-container {
+.activity-selection-container .character-container {
   width: 100%;
-  background: #424242;
   margin-top: 5px;
   box-shadow: 1px 1px 1px #000; }
+  .activity-selection-container .character-container .emblem-background {
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    height: 100%;
+    opacity: .9; }
+    .activity-selection-container .character-container .emblem-background img {
+      width: 100%;
+      height: 100%; }
+  .activity-selection-container .character-container .stats-box-player {
+    position: absolute;
+    top: 0;
+    left: -101%;
+    width: 275px;
+    z-index: 100; }
+    .activity-selection-container .character-container .stats-box-player ul {
+      display: inline-block; }
+      .activity-selection-container .character-container .stats-box-player ul li {
+        display: inline-block;
+        width: 255px;
+        padding: 10px;
+        background: #423f3f;
+        box-shadow: 0px 0px 20px 2px #12171c inset;
+        border: 1px solid #000; }
 
 .character {
-  padding: 5px; }
+  padding: 5px 0px 5px;
+  border: 1px solid #000;
+  text-shadow: 0px 1px 0px #000;
+  color: #fff;
+  font-size: 110%;
+  display: inline-block;
+  width: 100%; }
   .character img {
     width: 30px;
     vertical-align: middle;
@@ -433,17 +465,37 @@ input.player-input {
     position: relative;
     margin-left: 5px;
     vertical-align: middle;
-    text-align: left; }
-  .character .character-class.titan {
-    color: #ff60ff; }
-  .character .character-class.hunter {
-    color: #ffaf8e; }
-  .character .character-class.warlock {
-    color: #72d7ff; }
-  .character .light-level {
-    font-size: 10px;
-    color: yellow;
-    vertical-align: top; }
+    text-align: left;
+    width: 80%; }
+    .character .title-bar div {
+      display: inline-block; }
+    .character .title-bar .display-name {
+      width: 75%; }
+    .character .title-bar .class-info {
+      color: #13fbff;
+      text-align: right;
+      width: 23%;
+      display: inline-block; }
+      .character .title-bar .class-info div:first-child {
+        font-size: 70%;
+        vertical-align: top; }
+      .character .title-bar .class-info .light-level {
+        font-size: 130%;
+        vertical-align: top; }
+    .character .title-bar .level {
+      text-align: right;
+      font-size: 85%;
+      width: 100%; }
+  .character .character-class {
+    /* &.titan{
+         color: #ff60ff;
+     }
+     &.hunter{
+         color: #ffaf8e;
+     }
+     &.warlock{
+         color: #72d7ff;
+    } */ }
 
 .main-container {
   position: relative;
@@ -498,6 +550,8 @@ span.info-show-button {
       opacity: 1;
       z-index: 1;
       cursor: default; }
+      #ActivityContainer .activity-selection-container .activity-selection .spacing {
+        overflow: initial; }
       #ActivityContainer .activity-selection-container .activity-selection .activity-container-information {
         width: 100%;
         display: inline-block; }
@@ -524,8 +578,8 @@ span.info-show-button {
 
 #ActivityContainer .character {
   cursor: pointer; }
-  #ActivityContainer .character:hover {
-    box-shadow: 0px 0px 5px 2px #2eff00; }
+  #ActivityContainer .character:hover, #ActivityContainer .character.selected {
+    border: 1px solid #fff; }
 
 #ActivityContainer .view-bar-container {
   display: inline-block;
@@ -560,11 +614,12 @@ div.medal {
   float: left;
   cursor: pointer;
   width: 20px;
-  margin-right: 10px;
+  margin-right: 5px;
   height: 20px;
   text-align: center;
   vertical-align: middle;
-  line-height: 20px; }
+  line-height: 20px;
+  margin-left: 5px; }
   div.medal.gold {
     border: 1px solid gold;
     box-shadow: 0px 2px 20px #887618 inset;
@@ -623,6 +678,25 @@ div.medal {
   #PlayerActivityStats ul.stats-box li div.rank-value {
     padding: 5px; }
 
+.guys {
+  padding: 10px;
+  font-size: 150%;
+  text-align: center;
+  background: #6796dc;
+  margin-bottom: 20px;
+  width: 80%;
+  margin: 0 auto; }
+  .guys.bad {
+    background: none; }
+    .guys.bad.glow.on {
+      box-shadow: 0px 1px 20px 5px #ff0000 inset; }
+  .guys.avg.glow.on {
+    box-shadow: 0px 1px 20px 5px #57a2ff inset; }
+  .guys.best {
+    background: none; }
+    .guys.best.glow.on {
+      box-shadow: 0px 1px 20px 5px #00FF30 inset; }
+
 #medal-legend-container {
   width: 25%;
   background: rgba(51, 51, 51, 0.8);
@@ -648,22 +722,6 @@ div.medal {
     height: 100%;
     padding: 10px;
     text-align: center; }
-    #medal-legend-container .medal-legend .guys {
-      padding: 10px;
-      font-size: 150%;
-      text-align: center;
-      background: #6796dc;
-      margin-bottom: 20px;
-      width: 80%;
-      margin: 0 auto; }
-      #medal-legend-container .medal-legend .guys.bad {
-        background: none; }
-        #medal-legend-container .medal-legend .guys.bad.glow.on {
-          box-shadow: 0px 1px 20px 5px #ff0000; }
-      #medal-legend-container .medal-legend .guys.best {
-        background: none; }
-        #medal-legend-container .medal-legend .guys.best.glow.on {
-          box-shadow: 0px 1px 20px 5px #00FF30; }
     #medal-legend-container .medal-legend .medal-stat-box {
       display: inline-block;
       position: relative;
@@ -708,7 +766,11 @@ div.medal {
 
   .activity-selection-container .activity-selection .activity-info-container {
     float: none;
-    margin: 0 auto; } }
+    margin: 0 auto; }
+
+  .activity-selection-container .character-container .stats-box-player {
+    position: relative;
+    left: 0; } }
 @media screen and (max-width: 680px) {
   #medal-legend-container {
     width: 100%; }

@@ -21,32 +21,61 @@
 						</span>
 					</div>
 					<div class="activity-info-container">
-						<div class="character-container" ng-repeat="character in activityInfo.entries | orderBy: 'rankOrder' track by $index">
-							<div class="character">
-								<!-- <img ng-src="{{$root.const.bungieRoot}}{{character.player.destinyUserInfo.iconPath}}" /> -->
-								<div class="medal {{character.rankClassName.toLowerCase()}}" 
-									ng-click="toggleLegend()"
-									ng-class="{'selected' : ctrl.m.selectedStat == $index}">
-									<div>
-										<span>#{{character.rankOrder}}</span>
-									</div>
+						<div class="character-container" 
+							 ng-repeat="character in activityInfo.entries | orderBy: 'rankOrder' track by $index"
+							 ng-click="selectPlayer($index)">
+							<div class="character" ng-class="{'selected' : $index == ctrl.m.selectedPlayerIndex}">
+								<!-- <img style="background-image: url('{{$root.const.bungieRoot}}{{character.characterInfo.emblemBackgroundPath}}');" /> -->
+								<div class="medal">
 								</div>
 								<div class="title-bar">
-									<div>
-										<span class="player-class" data-playerName="{{character.characterInfo.displayName}}">
+									<div class="display-name">
+										<div class="player-class" data-playerName="{{character.characterInfo.displayName}}">
 											{{character.player.destinyUserInfo.displayName}}
-										</span>
+										</div>
 									</div>
 									<div class="class-info">
-										<span class="character-class {{character.player.characterClass.toLowerCase()}}" data-characterClass="{{character.player.characterClass}}">
+										<!-- <span class="character-class {{character.player.characterClass.toLowerCase()}}" data-characterClass="{{character.player.characterClass}}">
 											[{{character.player.characterClass}}]
-										</span>
-										<span class="light-level">
+										</span> -->
+										<div>&#9671;</div>
+										<div class="light-level">
 											{{character.player.lightLevel}} 
-										</span>
+										</div>
+									</div>
+									<div class="level">
+										Level {{character.player.characterLevel}} 
 									</div>
 								</div>
+								<div class="emblem-background">
+									<img ng-src="{{$root.const.bungieRoot}}{{character.characterInfo.emblemBackgroundPath}}"></img>
+								</div>
 							</div>
+
+							<div class="stats-box-player" ng-show="$index == ctrl.m.selectedPlayerIndex">
+								<ul>			
+									<li ng-if="$index === 0" class="guys best glow on">BEST GUY </li>
+									<li ng-if="$index > 0 && $index < activityInfo.entries.length-1" class="guys avg glow on">A GUY</li>
+									<li ng-if="$index === activityInfo.entries.length-1" class="guys bad glow on">WORST GUY</li>
+									<li ng-repeat="stat in character.values | toArray | orderBy: 'basic.rank' track by $index"
+										ng-click="selectStat($index)"
+										ng-if="stat.hasMedal"
+										ng-class-odd="'odd'">
+										<div class="rank-value">
+											<div class="medal {{stat.basic.className.toLowerCase()}}" 
+												ng-click="toggleLegend()"
+												ng-class="{'selected' : ctrl.m.selectedStat == $index}">
+												<div>
+													<span>#{{stat.basic.rank}}</span>
+												</div>
+											</div>
+											<span>{{stat.basic.displayName}}:<span><span> {{stat.basic.displayValue}}<span>
+										</div>
+									</li>
+								</ul>
+							</div>
+
+
 						</div>
 					</div>
 				</div>
