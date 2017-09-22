@@ -1,7 +1,13 @@
 {
-  "name": "YourFireTeamSucksD2",
+  "name": "YourFireTeamSucks",
+  "description": "Compare fireteam members in Destiny 2 activities",
   "main": "server.js",
+  "engines": {
+    "node": "^5.7.0"
+  },
   "scripts": {
+    "heroku-prebuild": "npm install",
+    "heroku-postbuild": "grunt build",
     "start": "node server.js"
   },
   "dependencies": {
@@ -20,10 +26,7 @@
     "passport-http": "^0.3.0",
     "passport-http-bearer": "^1.0.1",
     "request": "^2.80.0",
-    "sqlite3": "^3.1.11"
-  },
-  "engines": {
-    "node": "^5.7.0"
+    "sqlite3": "^3.1.12"
   },
   "devDependencies": {
     "grunt": "^1.0.1",
