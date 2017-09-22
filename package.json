@@ -7,7 +7,7 @@
   },
   "scripts": {
     "heroku-prebuild": "npm install",
-    "heroku-postbuild": "grunt build",
+    "postinstall": "grunt build",
     "start": "node server.js"
   },
   "dependencies": {
@@ -26,10 +26,11 @@
     "passport-http": "^0.3.0",
     "passport-http-bearer": "^1.0.1",
     "request": "^2.80.0",
-    "sqlite3": "^3.1.12"
-  },
-  "devDependencies": {
+    "sqlite3": "^3.1.12",
     "grunt": "^1.0.1",
     "grunt-contrib-copy": "^1.0.0"
+  },
+  "devDependencies": {
+
   }
 }
