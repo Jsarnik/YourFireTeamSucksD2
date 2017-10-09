@@ -26,8 +26,14 @@ class ManifestService {
         };
 
         request.get(options, (err, resp, body) => {
-            var jsonBody = JSON.parse(body);
-            if(manifestConfig.default.version != jsonBody.Response.version){
+            var jsonBody = null; 
+            try{
+                jsonBody = JSON.parse(body);
+            }
+            catch(e){
+                console.log('failed to parse manifest request');
+            }
+            if(jsonBody && (manifestConfig.default.version != jsonBody.Response.version)){
                 manifestConfig.default = jsonBody.Response;
                 this.getManifests(function(err, response){
                     doneFn(err, response);
@@ -88,7 +94,11 @@ class ManifestService {
 
         db.serialize(function(){
             db.each(query, function(err, row){
-                results.push(row.json);
+                try{
+                    results.push(JSON.parse(row.json));
+                }catch(e){
+                    console.log(e);
+                }
             }, function(err){
                 db.close(); //closing connection
                 nextFn(err, results);

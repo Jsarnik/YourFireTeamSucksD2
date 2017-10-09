@@ -10,7 +10,8 @@ var timeout = require('connect-timeout');
 var config = require('./config');
 var manifestService = require('./nodeServices/ManifestService');
 var activityMatch = require('./nodeServices/ActivityMatchService');
-var playerProfile = require('./nodeServices/PlayerProfileService')
+var playerProfile = require('./nodeServices/PlayerProfileService');
+var itemsService = require('./nodeServices/itemsService');
 // Create our Express application
 var app = express();
 var destinyBaseRequest = request.defaults({headers: {'X-API-Key': config.default.credentials.apiKey}});
@@ -68,10 +69,11 @@ router.get('/getMembershipIdByUserName', function(req, res, next){
 
           if(jsonResponse && jsonResponse.Response){
             result = jsonResponse.Response[0];
-          }
-          else if(jsonResponse.ErrorCode){
-            res.status(401);
-            result = {ErrorCode: 401, Error: jsonResponse.Message};
+
+            if(jsonResponse.ErrorCode > 1){
+              res.status(401);
+              result = {ErrorCode: 401, Error: jsonResponse.Message};
+            }
           }
 
           res.json(result);
@@ -85,8 +87,14 @@ router.get('/getCharacterInfoByMembershipId', function(req, res, next){
           res.setHeader('Content-Type', 'application/json');
           res.status(200);
 
-          var response = JSON.parse(body);
-          res.json(response);
+          try {
+            result = jsonResponse = JSON.parse(body);
+          } catch (e) {
+            res.status(500);
+            result = {ErrorCode: 500, Error: e};
+          }
+
+          res.json(result);
     });
 });
 
@@ -181,6 +189,37 @@ router.get('/getWeaponDefinitionById', function(req, res, next){
           }
 
           res.json(result);
+    });
+});
+
+router.get('/getCharacterInfoDetails', function(req, res, next){
+    destinyBaseRequest(config.default.destiny2_host + config.default.credentials.defaultMemberType + '/Profile/' + req.query.membershipId + 
+      '/Character/' + req.query.characterId + '/?components=100,200,201,205,300',
+      function (err, response, body) {
+        var jsonResponse, result;
+        res.setHeader('Content-Type', 'application/json');
+        res.status(200);
+
+        try {
+          result = jsonResponse = JSON.parse(body);
+        } catch (e) {
+          res.status(500);
+          result = {ErrorCode: 500, Error: e};
+        }
+
+        if(jsonResponse && jsonResponse.Response && jsonResponse.Response.equipment){
+          //get equipped items
+          itemsService.ItemsService.getItems(req.query.membershipId, jsonResponse.Response.equipment.data.items, function(err, itemResults){
+            if(!err){
+              jsonResponse.Response.equipment.data = itemResults;
+              result = jsonResponse;
+            }
+            else{
+              console.log(err);
+            }
+            res.json(result);
+          });
+        }
     });
 });
 

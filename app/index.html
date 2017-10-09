@@ -34,7 +34,9 @@
 		<script type="text/javascript" src="services/player-base-model.factory.js"></script>
 		<script type="text/javascript" src="services/fire-team-model.factory.js"></script>
 		<script type="text/javascript" src="services/activity-model.factory.js"></script>
+		<script type="text/javascript" src="services/character-model.factory.js"></script>
 		<script type="text/javascript" src="activities/activity-info.directive.js"></script>
+		<script type="text/javascript" src="character/character-info.directive.js"></script>
 		<script type="text/javascript" src="common/directives/dropdown.directive.js"></script>
 		<script type="text/javascript" src="common/directives/scroll-to-hide.directive.js"></script>
 		<script type="text/javascript" src="common/directives/input.directive.js"></script>
@@ -69,8 +71,8 @@
 								input-model="m.gameModes"
 								on-click="selectMode"
 								tab-index="0"
-								default-value="m.gameModes.generic[0]"
-								selected-item="m.selectedGameMode.displayName">
+								default-value="m.selectedGameMode"
+								selected-item-name="m.selectedGameMode.itemName">
 							</drop-down-directive>
 						</div>
 						<input-directive 
@@ -97,11 +99,10 @@
 								Search More
 							</div>
 						</div>
-
 					</div>
 				</div>
 			</div>
-		<div class="content" ui-view> 
+		<div class="content" ui-view>
 		</div>
 		<div id="disclaimers">
 			<span>© {{m.copyrightYear}} <a class="about" href="/#!/about">SarnikDev</a>. Destiny is a registered trademark of Bungie.</span> 

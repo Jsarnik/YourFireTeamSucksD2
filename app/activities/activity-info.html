@@ -57,6 +57,7 @@
 									<li ng-if="$index === 0" class="guys best glow on">BEST GUY </li>
 									<li ng-if="$index > 0 && $index < activityInfo.entries.length-1" class="guys avg glow on">A GUY</li>
 									<li ng-if="$index === activityInfo.entries.length-1" class="guys bad glow on">WORST GUY</li>
+									<li ng-click="goToCharacterPage(character)">View Character</li>
 									<li ng-repeat="stat in character.values | toArray | orderBy: 'basic.rank' track by $index"
 										ng-click="selectStat($index)"
 										ng-if="stat.hasMedal"

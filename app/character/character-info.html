@@ -1,0 +1,8 @@
+<div id="CharacterContainer">
+	<div ng-show="ctrl.m.isLoadingCharacterInfo">LOADING DATA ...</div>
+	<div class="items">
+		<div class="item" ng-repeat="equippedItem in ctrl.m.characterInfo.equipment.data track by $index">
+			<img ng-src="{{$root.const.bungieRoot}}{{equippedItem.instancedData.description[0].displayProperties.icon}}"></img>
+		</div>
+	</div>
+</div>

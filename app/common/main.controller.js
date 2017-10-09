@@ -13,10 +13,10 @@ angular.module('fireTeam.common')
 			}],
 			fireTeamMembers: {},
 			maxMembers: 6,
-			gameModes:{},
+			gameModes: buildGameModeObj(),
 			selectedGameMode:{
-				value: 'None',
-				displayName: 'Any'
+				itemName: "None",
+				itemValue: 0
 			},
 			platformTypes: {
 				xbox: {
@@ -50,6 +50,7 @@ angular.module('fireTeam.common')
 		m.matchAttempts = 0;
 		m.hoveredActivity = null;
 		m.currentStateParams = null;
+		m.deepLink = '';
 		m.copyrightYear = getDate();
 		m.activitySort = 'dateTime';
 		m.loadingStatusMessage = '';
@@ -72,47 +73,57 @@ angular.module('fireTeam.common')
 		$scope.showMoreResults = showMoreResults;
 		$scope.orderByDate = orderByDate;
 
-		$rootScope.$on("$stateChangeStart", function (event, toState, toParams, fromState, fromParams) {
-			googleAnalyticsService.pageLoad($location.absUrl(), toState.name);
-			m.currentStateParams = toParams;
-			var membersArray = toParams.members ? toParams.members.split(';') : '';
-
-			m.selectedPlatform = m.platformTypes[toParams.platform] || m.selectedPlatform;
-
-			if(membersArray.length > 0){
-				m.selectedPlatform = m.platformTypes[toParams.platform];
-				if(toParams.mode){
-					angular.forEach(m.gameModes, function(mode){
-						angular.forEach(mode, function(modeItem){
-							if(modeItem.value === toParams.mode){
-								m.selectedGameMode = modeItem;
-							}
-						})
-					}) 
+		function updateCurrentStateParams(params){
+			var absUrl = $location.absUrl() + '?';
+			var statParams = {};
+			angular.forEach(params, function(val, key){
+				if(val !== null){
+					absUrl += key + '=' + val + '&';
 				}
-				
-				m.playersArrays = [];
+				statParams[key] = val;
+			});
 
-				angular.forEach(membersArray, function(player){
-					m.playersArrays.push({displayName: player, isPlaceHolder : false});
-				});
+			m.deepLink = absUrl.substring(0, absUrl.length-1);
+			m.currentStateParams = statParams;
+		}
 
-				if(toParams.instanceId){
-					loadActivityByInstanceId(toParams.instanceId);
-				}
-				$timeout(function(){
-					getFireTeamModel();
-				},10);
-
-				var recentSearch = {
-					players: m.playersArrays,
-					platformType: m.selectedPlatform,
-					mode: m.selectedGameMode
-				}
-
-				updateRecentSearches(recentSearch);
+		$rootScope.$on("$stateChangeSuccess", function (event, toState, toParams, fromState, fromParams){
+			updateCurrentStateParams(toParams);
+			var recentSearch = {
+				players: m.playersArrays,
+				platformType: m.selectedPlatform,
+				mode: m.selectedGameMode
 			}
-			
+			googleAnalyticsService.pageLoad($location.absUrl(), toState.name);
+			$location.url($location.path());
+			updateRecentSearches(recentSearch);
+		})
+
+		$rootScope.$on("$stateChangeStart", function (event, toState, toParams, fromState, fromParams) {
+			switch(toState.name){
+				case 'search':
+					var membersArray = toParams.members ? toParams.members.split(';') : null;
+					if(!membersArray){ return };
+					m.playersArrays = [];
+					angular.forEach(membersArray, function(player){
+						m.playersArrays.push({displayName: player, isPlaceHolder : false});
+					});
+					if(toParams.instanceId){
+						loadActivityByInstanceId(toParams.instanceId);
+					}
+					$timeout(function(){
+						var fireTeamModelOptions = {
+							memberType: m.selectedPlatform.id,
+							gameMode: m.selectedGameMode.itemValue,
+							userNames: m.playersArrays
+						}
+						getFireTeamModel(fireTeamModelOptions);
+					},10);
+				break;
+				case 'character':
+					console.log(toState.name);
+				break;
+			}
 		});
 
 		$scope.$watch('m.playersArrays', function(newVal, oldVal){
@@ -133,7 +144,7 @@ angular.module('fireTeam.common')
 		init();
 
 		function init(){
-			buildGameModeObj();
+			//buildGameModeObj();
 			checkRecentSearches();
 			m.pageInitialized = true;
 		}
@@ -160,137 +171,53 @@ angular.module('fireTeam.common')
 		}
 
 		function buildGameModeObj(){
-
-			m.d2gameModesEnum = {
+			var modesEnum = {
 				'None': 0,
 				'Story': 2,
 				'Strike': 3,
 				'Raid': 4,
-				'AllPvP': 5,
+				'All PvP': 5,
 				'Patrol': 6,
-				'AllPvE': 7,
-				'Reserved9': 9,
+				'All PvE': 7,
+				'Reserved 9': 9,
 				'Control': 10,
-				'Reserved11': 11,
+				'Reserved 11': 11,
 				'Clash': 12,
-				'Reserved13': 13,
-				'Reserved15': 15,
+				'Reserved 13': 13,
+				'Reserved 15': 15,
 				'Nightfall': 16,
-				'HeroicNightfall': 17,
-				'AllStrikes': 18,
-				'IronBanner': 19,
-				'Reserved20': 20,
-				'Reserved21': 21,
-				'Reserved22': 22,
-				'Reserved24': 24,
-				'Reserved25': 25,
-				'Reserved26': 26,
-				'Reserved27': 27,
-				'Reserved28': 28,
-				'Reserved29': 29,
-				'Reserved30': 30,
+				'Heroic Nightfall': 17,
+				'All Strikes': 18,
+				'Iron Banner': 19,
+				'Reserved 20': 20,
+				'Reserved 21': 21,
+				'Reserved 22': 22,
+				'Reserved 24': 24,
+				'Reserved 25': 25,
+				'Reserved 26': 26,
+				'Reserved 27': 27,
+				'Reserved 28': 28,
+				'Reserved 29': 29,
+				'Reserved 30': 30,
 				'Supremacy': 31,
-				'Reserved32': 32,
+				'Reserved 32': 32,
 				'Survival': 37,
 				'Countdown': 38,
-				'TrialsOfTheNine': 39,
+				'Trials Of The Nine': 39,
 				'Social': 40
 			};
 
+			var modesArray = [];
 
-			m.gameModes = {
-					generic:[
-						{
-							value: 'None',
-							displayName: 'Any'
-						}
-					],
-					pve:[
-						{
-							value: 'AllPvE',
-							displayName: 'PvE (Any)'
-						},{
-							value: 'Story',
-							displayName: 'Story'
-						},{
-							value: 'Strike',
-							displayName: 'Strike'
-						},{
-							value: 'Raid',
-							displayName: 'Raid'
-						},{
-							value: 'Nightfall',
-							displayName: 'Nightfall'
-						},{
-							value: 'Heroic',
-							displayName: 'Heroic'
-						},{
-							value: 'AllStrikes',
-							displayName: 'Strikes (All)'
-						},{
-							value: 'Arena',
-							displayName: 'Arena'
-						},{
-							value: 'AllArena',
-							displayName: 'All Arena'
-						},{
-							value: 'ArenaChallenge',
-							displayName: 'Arena Challenge'
-						},{
-							value: 'None',
-							displayName: 'Any'
-						}
-					],
-					pvp: [
-						{
-							value: 'AllPvP',
-							displayName: 'PvP (Any)'
-						}
-						,{
-							value: 'ThreeVsThree',
-							displayName: '3 v 3'
-						},{
-							value: 'Control',
-							displayName: 'Control'
-						},{
-							value: 'Lockdown',
-							displayName: 'Lockdown'
-						},{
-							value: 'Team',
-							displayName: 'Team'
-						},{
-							value: 'FreeForAll',
-							displayName: 'Free For All'
-						},{
-							value: 'IronBanner',
-							displayName: 'Iron Banner'
-						},{
-							value: 'TrialsOfOsiris',
-							displayName: 'Trials Of Osiris'
-						},{
-							value: 'Elimination',
-							displayName: 'Elimination'
-						},{
-							value: 'Rift',
-							displayName: 'Rift'
-						},{
-							value: 'ZoneControl',
-							displayName: 'Control'
-						},{
-							value: 'Racing',
-							displayName: 'Sparrow Racing'
-						},{
-							value: 'Supremacy',
-							displayName: 'Supremacy'
-						},{
-							value: 'Mayhem',
-							displayName: 'Mayhem'
-						},{
-							value: 'PrivateMatchesAll',
-							displayName: 'Private Matches (All)'
-						}
-					]
-				}
+			angular.forEach(modesEnum, function(val, key){
+				modesArray.push(
+					{
+						itemName: key,
+						itemValue: val
+					}
+				);
+			});
+			return modesArray;
 		}
 
 		function selectPlatform(platform){
@@ -357,8 +284,8 @@ angular.module('fireTeam.common')
 			var newSearchParams = {
 				platform: m.selectedPlatform.displayValue,
 				members: '',
-				mode: m.selectedGameMode.value,
-				instanceId: undefined
+				mode: m.selectedGameMode.itemValue,
+				instanceId: null
 			}
 
 			var membersString = '';
@@ -377,7 +304,7 @@ angular.module('fireTeam.common')
 			$state.go('search', newSearchParams);
 		}
 
-		function getFireTeamModel(){
+		function getFireTeamModel(fireTeamModelOptions){
 			if(m.isLoadingData){
 				return;
 			}
@@ -396,7 +323,7 @@ angular.module('fireTeam.common')
 			m.warningMessage = '';
 			m.showWarningMessage = false;
 
-			fireTeamModelFactory.getFireTeam(m.selectedPlatform.id, m.playersArrays).then(function(response){
+			fireTeamModelFactory.getFireTeam(fireTeamModelOptions).then(function(response){
 				var playerResponseError = false;
 				angular.forEach(response, function(playerResponse){
 					if((playerResponse.Error)){
@@ -410,7 +337,7 @@ angular.module('fireTeam.common')
 				}
 
 				m.fireTeamMembers.players = response;
-				m.fireTeamMembers.gameMode = m.selectedGameMode.value;
+				m.fireTeamMembers.gameMode = fireTeamModelOptions.gameMode;
 				m.fireTeamMembers.pageNum = 0;
 
 				setSearchCriteria();

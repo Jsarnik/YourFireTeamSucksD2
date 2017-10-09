@@ -5,8 +5,8 @@ angular.module('fireTeam.common')
 	var fireTeamModel, playerPromises, currentDeferred;
 
 	var fireTeamModelObject = {
-		getFireTeam: function(memberType, userNames) {
-			return $q.when(fireTeamModel || playerPromises || getFireTeamMembers(memberType, userNames));
+		getFireTeam: function(fireTeamOptions) {
+			return $q.when(fireTeamModel || playerPromises || getFireTeamMembers(fireTeamOptions));
 		},
 		clear: clear,
 		cancelAllPromises: function(){
@@ -27,13 +27,13 @@ angular.module('fireTeam.common')
 		playerPromises = null;
 	}
 
-	function getFireTeamMembers(memberType, userNames) {
+	function getFireTeamMembers(options) {
 		var deferred = currentDeferred = $q.defer();
 		var playerPromises = [];
 
-		angular.forEach(userNames, function(user){
+		angular.forEach(options.userNames, function(user){
 			if(user.displayName && user.displayName !== ''){
-				playerPromises.push(getPlayerData(memberType, user.displayName));
+				playerPromises.push(getPlayerData(options.memberType, user.displayName));
 			}
 		});
 
@@ -45,7 +45,7 @@ angular.module('fireTeam.common')
 		playerOptionsService.getMembershipId({memberType: memberType, userName: userName}).then(function (response) {	
 			var membershipModel = response;
 
-			if (!membershipModel){
+			if (!membershipModel || membershipModel.ErrorCode){
 				var customErrorResponse = {
 					ErrorCode: 101,
 					Error: "Could not find player: " + userName

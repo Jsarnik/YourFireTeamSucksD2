@@ -254,9 +254,9 @@ angular
 		};
 };
 
-activityInfoCtrl.$inject = ['$scope','$anchorScroll'];
+activityInfoCtrl.$inject = ['$scope','$anchorScroll', '$state'];
 
-function activityInfoCtrl($scope, $anchorScroll){
+function activityInfoCtrl($scope, $anchorScroll, $state){
 	var self = this;
 	self.m = $scope;
 	self.m.selectedStat = null;
@@ -268,6 +268,15 @@ function activityInfoCtrl($scope, $anchorScroll){
 	$scope.toggleLegend = toggleLegend;
 	$scope.selectView = selectView;
 	$scope.selectPlayer = selectPlayer;
+	$scope.goToCharacterPage = goToCharacterPage;
+
+	function goToCharacterPage(characterScope){
+		var characterParams = {
+			membershipId: characterScope.player.destinyUserInfo.membershipId,
+			characterId: characterScope.characterId
+		}
+		$state.go('character', characterParams);
+	}
 	
 	function toggleLegend(){
 		self.m.showLegend = !self.m.showLegend;

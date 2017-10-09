@@ -4,10 +4,13 @@ var request = require('request');
 var config = require('../config')
 var async = require('async');
 var manifestService = require('./ManifestService');
-var playerProfile = require('./PlayerProfileService')
+var playerProfile = require('./PlayerProfileService');
+
+var startSeconds;
 
 class ActivityMatchService {
     getActivities(activitySearchOptions, doneFn){
+        startSeconds = new Date().getTime() / 1000;
         var instance = this;
         var memberLookups = [];
 
@@ -29,13 +32,21 @@ class ActivityMatchService {
         });
 
         this.sendActivityRequestPerCharacter(memberLookups, function(activityListResults){
+            var timeStamp = new Date().getTime() / 1000;
+            console.log('sendActivityRequestPerCharacter Response:' + (timeStamp - startSeconds));
+
+
             if(!activityListResults || activityListResults.length < 1){
                 doneFn(null, activityListResults);
                 return;
             }
             var matchResults = instance.compareMemberActivityInstances(activityListResults);
             instance.getPostGameCarnageReport(matchResults, function(err, activityPostGameCarnageResults){
+                var timeStamp = new Date().getTime() / 1000;
+                console.log('getPostGameCarnageReport Response:' + (timeStamp - startSeconds));
                 instance.getActivityDefinitions(activityPostGameCarnageResults, function(err, activityMatchResults){
+                    var timeStamp = new Date().getTime() / 1000;
+                    console.log('getActivityDefinitions Response:' + (timeStamp - startSeconds));
                     var response = {
                         activityMatchListResults: activityMatchResults
                     };
@@ -70,7 +81,7 @@ class ActivityMatchService {
                         console.log(e);
                     }
                     
-                    if (jsonBody.Response.activities){
+                    if (jsonBody && jsonBody.Response && jsonBody.Response.activities){
                         jsonBody.Response.activities.forEach(function(activity){
                             activity.characterId = req.characterId
                             membersActivities[req.memberId].push(activity);
@@ -134,14 +145,15 @@ class ActivityMatchService {
             request.get(options, (err, resp, body) => {
                 if (!err){
                     var jsonBody = null;
-                    
                     try{
                         jsonBody = JSON.parse(body);
                     }catch(e){
                         console.log(e)
                     }
                     if(jsonBody && jsonBody.Response){
+                        console.log('getPostGameCarnageReport Response:')
                         playerProfile.PlayerProfileService.appendActivityPlayersCharacterInformation(jsonBody.Response, function(err, activityDetailsWithCharacterProfiles){
+                            console.log('appendActivityPlayersCharacterInformation Response:')
                             activityPostGameCarnageResults.push(activityDetailsWithCharacterProfiles);
                             next();
                         });
@@ -174,9 +186,8 @@ class ActivityMatchService {
         manifestService.ManifestService.queryManifest('world.content', queryString, function(err, activityDetailsResults){
             activityMatchList.forEach(function(activity){
                 activityDetailsResults.forEach(function(definition){
-                    var parsedDef = JSON.parse(definition);
-                    if(activity.activityDetails.referenceId == parsedDef.hash){
-                        activity.definitions = parsedDef;
+                    if(definition && activity.activityDetails.referenceId == definition.hash){
+                        activity.definitions = definition;
                     }
                 });
             });

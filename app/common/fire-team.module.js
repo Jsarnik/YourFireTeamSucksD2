@@ -13,11 +13,18 @@ angular.module('fireTeam', [
 
       $stateProvider
               .state('search', {
-                url: '/search/:platform?members?mode?instanceId',
-                templateUrl: 'search-results.html'
+                url: '/search/?platform:members:mode:instanceId',
+                templateUrl: 'search-results.html',
+                params : { platform : null, members: null, mode: null, instanceId: null },
+                reloadOnSearch: false
             }).state('about', {
                 url: '/about',
                 templateUrl: 'about.html'
+            }).state('character', {
+                url: '/character/?membershipId:characterId',
+                template: "<character-info>",
+                params : { membershipId : null, characterId: null },
+                reloadOnSearch: false
             });
 	}]);
 

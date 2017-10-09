@@ -11,5 +11,6 @@ angular.module('fireTeam.common')
         getPlayerActivityHistoryData: baseHttpService.get.bind(this, '../api/getPlayerActivityHistoryData'),
         getPostGameCarnageReport: baseHttpService.get.bind(this, '../api/getPostGameCarnageReport'),
         getWeaponDefinitionById: baseHttpService.get.bind(this, '../api/getWeaponDefinitionById'),
+        getCharacterInfoDetails: baseHttpService.get.bind(this, '../api/getCharacterInfoDetails'),
     };
 }]);

@@ -13,18 +13,17 @@ angular
 				tabIndex: '@',
 				onClick: '&',
 				defaultValue: '=',
-				selectedItem: '='
+				selectedItemName: '='
 			},
 			controller:dropDownDirectiveCtrl,
 			replace: true,
 			template: '<div class="dropdown-container" tabIndex="{{tabIndex}}" ng-click="toggleDropDown()">' +
-							'<div class="selected-option" >{{selectedItem}}</div>' +
+							'<div class="selected-option" >{{selectedItemName}}</div>' +
 							'<div class="dropdown-select" ng-show="showDropDown">' +
-								'<ul class="select-category" ng-repeat="(key, val) in inputModel track by $index">' +
-									'<li class="category">' +
-										'<span>{{key.toUpperCase()}}:</span>'  +
-									'<li>' +
-									'<li class="option" ng-repeat="option in inputModel[key] track by $index" ng-click="select(option)">{{option.displayName}}</li>' +
+								'<ul class="select-category" ng-repeat="option in inputModel track by $index">' +
+									'<li class="category" ng-click="select(option)">' +
+										'<span>{{option.itemName.toUpperCase()}}</span>'  +
+									'</li>' +
 								'</ul>' +
 							'</div>' +
 							'<div class="dropdown-button">+</div>' +
@@ -54,7 +53,7 @@ angular
 				});
 
 				scope.select = function(item){
-					$element.blur();
+					//$element.blur();
 					scope.selectItem(item);
 				};
 			}		
@@ -67,7 +66,6 @@ angular
 		$scope.selectItem = selectItem;
 		$scope.toggleDropDown = toggleDropDown;
 		$scope.selectedObject = $scope.defaultValue;
-		$scope.selectedItem = $scope.selectedObject.displayName;
 
 		function toggleDropDown(){
 			$scope.showDropDown = !$scope.showDropDown;
@@ -75,7 +73,7 @@ angular
 
 		function selectItem(item){
 			$scope.selectedObject = item;
-			$scope.selectedItem = item.value;
+			$scope.selectedItemName = item.itemName;
 			if($scope.clickFn){
 				$scope.clickFn(item);
 			}
