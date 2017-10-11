@@ -18,12 +18,10 @@ angular
 			replace: true,
 			link: function(scope, element, attrs, ctrl){
 				scope.isLoadingCarnageReport = false;
-				scope.showLegand = false;
 
 				angular.element($window).on('click', function(e){
 					if(scope.legandIsOpen){
 						e.stopPropagation();
-						scope.toggleLegend();
 						return;
 					}
 					scope.$apply();
@@ -38,78 +36,109 @@ angular
 				function getFireTeam(){
 					scope.activityMembers = {};
 					scope.isLoadingCarnageReport = true;
-					generateStatRanks();
+					var statsObject = defineStatRanksObject();			
+					calculateRankTypes(statsObject);
 					updateActivityInfoWithOrderedValues(scope.activityInfo.playerStatsByOrderedList);
 					scope.activityInfo.medalLegend = buildMedalLegend(scope.activityInfo);
-					scope.activityInfo.topMedalList = bestPlayerAlgorithm(scope.activityInfo.medalLegend);
-					updateEntryPropWithScore();
+					//scope.activityInfo.topMedalList = bestPlayerAlgorithm(scope.activityInfo.medalLegend);
 					scope.selectPlayer(0);
 					console.log(scope.activityInfo);
 				}
 
-				function generateStatRanks(){
+				function defineStatRanksObject(){
 					var entriesArray = scope.activityInfo.entries;
 					var statsObject = {};
 
-					angular.forEach(entriesArray, function(entryValue, entryKey){
-						buildStatsObject(entryValue, entryValue.values);
-						buildStatsObject(entryValue, entryValue.extended.values);
+					angular.forEach(entriesArray, function(entry){
+						buildStatsObject(entry, entry.values);
+						buildStatsObject(entry, entry.extended.values);
 					});
-					scope.activityInfo.playerStatsByOrderedList = orderStats(statsObject);
 
-					function buildStatsObject(entryValue, statsArray){						
+					function buildStatsObject(entryValue, statsArray){		
 						angular.forEach(statsArray, function(statValue, statKey){
 							if(!statsObject[statKey]){
-								statsObject[statKey] = [];
+								statsObject[statKey] = {};
+								statsObject[statKey].players = [];
+								statsObject[statKey].displayName = statStringDisplayFormat(statKey);
+								statsObject[statKey].bestValues = {
+									overAll: {
+										value: 0,
+										displayValue: null
+									},
+									percentOfHighest: {
+										value: 1,
+										displayValue: '100%'
+									},
+									avgStatPerMinuteValue: {
+										value: 0,
+										displayValue: null
+									},
+									avgStatPerMinuteValueAsPercentOfHighest: {
+										value: 0,
+										displayValue: null
+									}
+								}
 							}
+
+							var avgStatPerMinuteValue = (statValue.basic.value / entryValue.values.activityDurationSeconds.basic.value) * 60;
+							statsObject[statKey].bestValues.overAll.value = statValue.basic.value > statsObject[statKey].bestValues.overAll.value ? statValue.basic.value : statsObject[statKey].bestValues.overAll.value;
+							statsObject[statKey].bestValues.avgStatPerMinuteValue.value = avgStatPerMinuteValue > statsObject[statKey].bestValues.avgStatPerMinuteValue.value ? avgStatPerMinuteValue : statsObject[statKey].bestValues.avgStatPerMinuteValue.value;
+
 							var playerValue = {
 								characterId: entryValue.characterId,
 								destinyUserInfo: entryValue.player.destinyUserInfo,
-								basic: {
-									value: statValue.basic.value,
-									rank: 0,
-									displayName: statStringDisplayFormat(statKey),
-									displayValue: statValue.basic.displayValue,
-								}
+								activityDurationSeconds: entryValue.values.activityDurationSeconds.basic.value,
+								rankTypes: {
+									overAll:{
+										value: statValue.basic.value,
+										rank: 0,
+										displayValue: ""
+									},
+									percentOfHighest: {
+										value: 0,
+										rank: 0,
+										displayValue: ""
+									},
+									avgStatPerMinuteValue: {
+										value: avgStatPerMinuteValue,
+										rank: 0,
+										displayValue: ""
+									},
+									avgStatPerMinuteValueAsPercentOfHighest: {
+										value: 0,
+										rank: 0,
+										displayValue: ""
+									}
+								},
 							}
-							statsObject[statKey].push(playerValue);
+							statsObject[statKey].players.push(playerValue);
 						});
 					}
+					return statsObject;
 				}
 
-				function orderStats(unOrderedStatRanksObject){
-					var orderedList = {};
-					angular.forEach(unOrderedStatRanksObject, function(val, key){
-						if(isReverseOrder(key)){
-							val.ordered = $filter('orderBy')(val, 'basic.value');
-						}else{
-							val.ordered = $filter('orderBy')(val, '-basic.value');
-						}
-						val = buildOrderedObject(val);
-					});	
+				function calculateRankTypes(unOrderedStatRanksObject){
+					debugger;
+					angular.forEach(unOrderedStatRanksObject, function(statVal, statKey){
+						var reverseOrder = isReverseOrder(statKey);
+						var prevValue = null;
+						var bestAvgStatPerMinuteValueAsPercentOfHighest = 0;
 
-					return unOrderedStatRanksObject;
-				}
-
-				function buildOrderedObject(entriesObject){
-					var rankIndex = 1;
-					var totalMembers = entriesObject.ordered.length;
-					var prevValue = null;
-					entriesObject.hasMedal = false;
-					angular.forEach(entriesObject.ordered, function(player){
-						player.basic.rank = rankIndex;
-						player.basic.outOf = totalMembers;
-						player.basic.className = scope.getDisplayValue(rankIndex, totalMembers);
-						rankIndex++;
-						prevValue = prevValue == null ? player.basic.value : prevValue;
-						if(entriesObject.hasMedal === false){
-							entriesObject.hasMedal = !areSameValues(prevValue, player.basic.value)
-						}
-						prevValue = player.basic.value;
+						statVal.hasMedal = false;
+						angular.forEach(statVal.players, function(playerRankObject){
+							prevValue = prevValue == null ? playerRankObject.rankTypes.overAll.value : prevValue;
+							if(statVal.hasMedal === false){
+								statVal.hasMedal = !areSameValues(prevValue, playerRankObject.rankTypes.overAll.value);
+							}
+							prevValue = playerRankObject.rankTypes.overAll.value;
+							statVal.hasMedal = statVal.hasMedal == true ? isMedalStatOverride(statKey) : false;
+							playerRankObject.rankTypes.percentOfHighest.value = playerRankObject.rankTypes.overAll.value / statVal.bestValues.overAll.value;
+							playerRankObject.rankTypes.avgStatPerMinuteValueAsPercentOfHighest.value = playerRankObject.rankTypes.avgStatPerMinuteValue.value / statVal.bestValues.avgStatPerMinuteValue.value;
+							statVal.bestValues.avgStatPerMinuteValueAsPercentOfHighest.value = playerRankObject.rankTypes.avgStatPerMinuteValueAsPercentOfHighest.value > bestAvgStatPerMinuteValueAsPercentOfHighest ? playerRankObject.rankTypes.avgStatPerMinuteValueAsPercentOfHighest.value : bestAvgStatPerMinuteValueAsPercentOfHighest;
+						});
+						statVal = orderAndRank(statVal, reverseOrder);
 					});
-					//if a activity time stat no medals given
-					entriesObject.hasMedal = entriesObject.hasMedal == true ? isMedalStatOverride(entriesObject[0].basic.displayName) : false;
-					return entriesObject;
+					scope.activityInfo.playerStatsByOrderedList = unOrderedStatRanksObject;
 
 					function isMedalStatOverride(statName){
 						return statName.toLowerCase().indexOf('seconds') === -1;
@@ -118,6 +147,48 @@ angular
 					function areSameValues(check1, check2){
 						return check1 == check2;
 					}
+				}
+
+				function orderAndRank(statUnrankedPlayersList, reverseOrder){
+					angular.forEach(statUnrankedPlayersList.players[0].rankTypes, function(val, key){
+						statUnrankedPlayersList.bestValues[key].displayValue = formatRankTypeDisplayValue(key, statUnrankedPlayersList.bestValues[key].value);
+						var orderByString = reverseOrder ? 'rankTypes.' + key + '.value' : '-rankTypes.' + key + '.value';
+						var orderedList = $filter('orderBy')(statUnrankedPlayersList.players, orderByString);
+
+						angular.extend(statUnrankedPlayersList.players, buildOrderedObject(orderedList, key));
+						return statUnrankedPlayersList;
+					})
+				}
+
+				function buildOrderedObject(entriesObject, rankTypeKey){
+					var rankIndex = 1;
+					var totalMembers = entriesObject.length;
+					angular.forEach(entriesObject, function(player){
+						player.rankTypes[rankTypeKey].rank = rankIndex;
+						player.rankTypes[rankTypeKey].outOf = totalMembers;
+						player.rankTypes[rankTypeKey].displayValue = formatRankTypeDisplayValue(rankTypeKey, player.rankTypes[rankTypeKey].value);
+						player.rankTypes[rankTypeKey].className = scope.getDisplayValue(rankIndex, totalMembers);
+						rankIndex++;
+					});
+
+					return entriesObject;
+				}
+
+				function formatRankTypeDisplayValue(key, value){
+					var displayValue = "";
+					switch(key){
+						case 'overAll':
+							displayValue = (Math.round(value * 100) / 100);
+						break;
+						case 'avgStatPerMinuteValue':
+							displayValue = (Math.round(value * 100) / 100) + '/min';
+						break;
+						default:
+							displayValue = Math.round(((value * 100) * 100) / 100) + '%';
+						break;
+					}
+
+					return displayValue;
 				}
 
 				function updateActivityInfoWithOrderedValues(orderedStatsObject){
@@ -131,10 +202,12 @@ angular
 						angular.forEach(entriesArray, function(entryValue, entryKey){
 							angular.forEach(orderedStatsObject, function(statValue, statKey){
 								if(entryKey.toLowerCase() === statKey.toLowerCase()){
-									entryValue.hasMedal = statValue.hasMedal;
-									angular.forEach(statValue.ordered, function(player){
+									debugger;
+									angular.extend(entryValue, statValue);
+									delete entryValue.players;
+									angular.forEach(statValue.players, function(player){
 										if(currentCharacterId == player.characterId){
-											angular.extend(entryValue.basic = player.basic);
+											angular.extend(entryValue, player);
 										}
 									});
 								}
@@ -163,92 +236,180 @@ angular
 							medals: {
 								gold: {
 									className: 'gold',
-									weight: 5,
-									count: 0,
-									stats: []
+									weight: 14,
+									overAll: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									percentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValue: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValueAsPercentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									}
 								},
 								silver: {
 									className: 'silver',
-									weight: 2,
-									count: 0,
-									stats: []
+									weight: 9,
+									overAll: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									percentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValue: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValueAsPercentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									}
 								},
 								bronze: {
 									className: 'bronze',
+									weight: 8,
+									overAll: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									percentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValue: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValueAsPercentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									}
+								},
+								average: {
+									className: 'average',
 									weight: 1,
-									count: 0,
-									stats: []
+									overAll: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									percentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValue: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValueAsPercentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									}
 								},
 								last: {
 									className: 'last',
-									weight: -1,
-									count: 0,
-									stats: []
-								},
+									weight: -2,
+									overAll: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									percentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValue: {
+										count: 0,
+										score: 0,
+										stats: []
+									},
+									avgStatPerMinuteValueAsPercentOfHighest: {
+										count: 0,
+										score: 0,
+										stats: []
+									}
+								}
+							},
+							aggregateMedalScores:{
+								overAll: 0,
+								percentOfHighest: 0,
+								avgStatPerMinuteValue: 0,
+								avgStatPerMinuteValueAsPercentOfHighest: 0
 							}
 						}
 						angular.extend(characterObject, countMedals(playerEntry.values, characterObject));
 						angular.extend(characterObject, countMedals(playerEntry.extended.values, characterObject));
+						playerEntry.orderByRankTypes = characterObject;
 						medalLegend.push(characterObject);
 					});
 					
 					function countMedals(statsArray, charObj){
-						angular.forEach(statsArray, function(statValue){
-							if(statValue.hasMedal){
-								var statObject = {
-									displayName: statValue.basic.displayName,
-									value: statValue.basic.displayValue
-								}
-								switch(statValue.basic.rank){
-									case 1:
-										charObj.medals.gold.count += 1;
-										charObj.medals.gold.stats.push(statObject);
-									break;
-									case 2:
-										charObj.medals.silver.count += 1;
-										charObj.medals.silver.stats.push(statObject);
-									break;
-									case 3:
-										charObj.medals.bronze.count += 1;
-										charObj.medals.bronze.stats.push(statObject);
-									break;
-									case (activityInfoObj.entries.length):
-										charObj.medals.last.count += 1;
-										charObj.medals.last.stats.push(statObject);
-									break;
-									default:
-								}
+						angular.forEach(statsArray, function(statValue, statKey){
+							var statObject = {
+								displayValue: statKey,
+								displayName: statStringDisplayFormat(statKey)
 							}
+							angular.forEach(statValue.rankTypes, function(rankValues, rankKey){
+								if(statValue.hasMedal){
+									switch(rankValues.rank){
+										case 1:
+											charObj.medals.gold[rankKey].count += 1;
+											charObj.medals.gold[rankKey].score = charObj.medals.gold[rankKey].count * charObj.medals.gold.weight;
+											charObj.medals.gold[rankKey].stats.push(statObject);
+										break;
+										case 2:
+											charObj.medals.silver[rankKey].count += 1;
+											charObj.medals.silver[rankKey].score = charObj.medals.silver[rankKey].count * charObj.medals.silver.weight;
+											charObj.medals.silver[rankKey].stats.push(statObject);
+										break;
+										case 3:
+											charObj.medals.bronze[rankKey].count += 1;
+											charObj.medals.bronze[rankKey].score = charObj.medals.bronze[rankKey].count * charObj.medals.bronze.weight;
+											charObj.medals.bronze[rankKey].stats.push(statObject);
+										break;
+										case (activityInfoObj.entries.length):
+											charObj.medals.last[rankKey].count += 1;
+											charObj.medals.last[rankKey].score = charObj.medals.last[rankKey].count * charObj.medals.last.weight;
+											charObj.medals.last[rankKey].stats.push(statObject);
+										break;
+										default:
+											charObj.medals.average[rankKey].count += 1;
+											charObj.medals.average[rankKey].score = charObj.medals.average[rankKey].count * charObj.medals.average.weight;
+											charObj.medals.average[rankKey].stats.push(statObject);
+										break;
+									}
+									charObj.aggregateMedalScores[rankKey] = (charObj.medals.gold[rankKey].score + charObj.medals.silver[rankKey].score + charObj.medals.bronze[rankKey].score + charObj.medals.last[rankKey].score + charObj.medals.average[rankKey].score);
+								}
+							});
 						});
 						return charObj;
 					}
 					return medalLegend;
-				}
-
-				function bestPlayerAlgorithm(medalLegend){
-					angular.forEach(medalLegend, function(playerMedals){
-						var playersMedalScore = 0;
-						angular.forEach(playerMedals.medals, function(medal){
-							playersMedalScore += (medal.count * medal.weight);
-						});
-						playerMedals.playersMedalScore = playersMedalScore < 0 ? 0 : playersMedalScore;
-					});
-
-					medalLegend = $filter('orderBy')(medalLegend, '-playersMedalScore');
-					return medalLegend;
-				}
-
-				function updateEntryPropWithScore(){ 
-					var index = 1;
-					angular.forEach(scope.activityInfo.topMedalList, function(topMedal){
-						angular.forEach(scope.activityInfo.entries, function(player){
-							if (topMedal.characterId === player.characterId){
-								player.rankOrder = index;
-								player.rankClassName = scope.getDisplayValue(index, scope.activityInfo.topMedalList.length)
-							} 
-						});
-						index++;
-					});
 				}
 			}
 		};
@@ -261,14 +422,18 @@ function activityInfoCtrl($scope, $anchorScroll, $state){
 	self.m = $scope;
 	self.m.selectedStat = null;
 	self.m.selectedView = 'player';
-	self.m.showLegend = false;
 	$scope.goToPlayer = goToPlayer;
 	$scope.getDisplayValue = getDisplayValue;
 	$scope.selectStat = selectStat;
-	$scope.toggleLegend = toggleLegend;
 	$scope.selectView = selectView;
 	$scope.selectPlayer = selectPlayer;
 	$scope.goToCharacterPage = goToCharacterPage;
+	$scope.setOrder = setOrder;
+	$scope.sortedBy = 'overAll';
+
+	function setOrder(val){
+		$scope.sortedBy = val;
+	}
 
 	function goToCharacterPage(characterScope){
 		var characterParams = {
@@ -276,10 +441,6 @@ function activityInfoCtrl($scope, $anchorScroll, $state){
 			characterId: characterScope.characterId
 		}
 		$state.go('character', characterParams);
-	}
-	
-	function toggleLegend(){
-		self.m.showLegend = !self.m.showLegend;
 	}
 
 	function goToPlayer(val){
@@ -303,7 +464,6 @@ function activityInfoCtrl($scope, $anchorScroll, $state){
 	}
 
 	function getDisplayValue(rank, total){
-	
 		switch(rank){
 			case 1:
 				return 'gold';

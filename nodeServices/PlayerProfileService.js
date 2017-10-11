@@ -12,14 +12,14 @@ class PlayerProfileService {
             var cacheKey = instance.getCacheKey(player.player.destinyUserInfo.membershipId);
             appCache.AppCache.Get(cacheKey, function(err, cachedPlayerInfo){
                 if(!err && cachedPlayerInfo){
-                    console.log('playerInfoFromCache');
                     player.characterInfo = cachedPlayerInfo[player.characterId];
                     next();
                 }else{
                     instance.characterInfoRequest(player, function(err, characterInfo){
-                        console.log('characterInfoRequest Response:');
                         player.characterInfo = characterInfo;
-                        appCache.AppCache.Set(cacheKey, characterInfo, 3600, (err, data) => { });
+                        if(!err){
+                            appCache.AppCache.Set(cacheKey, characterInfo, 3600, (err, data) => { });
+                        }
                         next();
                     });
                 }

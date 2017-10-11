@@ -42,11 +42,12 @@ input.text {
   width: 90%;
   outline: none;
   border: none;
-  background: #000;
+  background: rgba(0, 0, 0, 0.33);
   border-radius: 3px;
   border: 1px solid #6796dc;
   margin-top: 5px;
-  color: #eee; }
+  color: #eee;
+  text-shadow: 0px 1px 0px #000; }
   input.text.placeholder {
     opacity: .6; }
 
@@ -175,10 +176,10 @@ button.link {
   top: 101%;
   left: 0;
   width: 100%;
-  background: #333;
+  background: #000;
   color: #fff;
   z-index: 20;
-  box-shadow: 1px 1px 1px 1px #eee;
+  box-shadow: 0px 0px 2px 1px #6796dc;
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
   height: 300px;
@@ -187,14 +188,18 @@ button.link {
 .dropdown-container .dropdown-select .select-category li.category {
   text-align: center;
   color: #eee;
-  background: #333;
-  text-shadow: 1px 1px 1px #000; }
+  text-shadow: 0px 1px 0px #000;
+  background: #000;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333; }
 
 .dropdown-container .dropdown-select .select-category li {
   padding: 10px; }
   .dropdown-container .dropdown-select .select-category li:hover {
-    background: #fff;
-    color: #000; }
+    border-top: 1px solid #6796dc;
+    border-bottom: 1px solid #6796dc;
+    background: #333;
+    box-shadow: 0px 0px 10px 1px #6796dc; }
 
 .dropdown-container .dropdown-select .select-category li.option {
   cursor: pointer; }
@@ -501,7 +506,7 @@ input.player-input {
 
 .main-container {
   position: relative;
-  width: 90%;
+  width: 96%;
   display: block;
   margin: 0 auto;
   margin-top: 20px; }
@@ -1322,5 +1327,8 @@ div.tooltip {
   display: inline-block; }
   .item img {
     width: 100%; }
+
+.best-value {
+  color: #2dcf09; }
 
 /*# sourceMappingURL=sass.css.map */

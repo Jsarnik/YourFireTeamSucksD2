@@ -19,7 +19,7 @@ angular
 			template: '<div class="input-container">' + 
 					    '<input class="text" ng-focus="initialFocus=true" ng-blur="initialFocus=false" type="text" placeholder="Gamertag or PSN" ng-model="inputModel.displayName"' +
 						'tabindex="tabIndex" ng-class="{\'placeholder\' : inputModel.isPlaceHolder && !initialFocus}" />' + 
-						'<div class="recent-search-container" ng-if="recentSearch.length > 0 && initialFocus === true">' + 
+						'<div class="recent-search-container" ng-if="recentSearch.length > 0 && initialFocus === true && 1==-1">' + 
 							'<div class="recent-search-table">' + 
 								'<ul>' + 
 									'<li>Recent Searches:</li>' + 
@@ -28,11 +28,11 @@ angular
 									'<li class="recent-search-platform">' + 
 										'<img ng-src="/img/{{search.platformType.id === 1 && \'xbox_icon.png\' || \'psn_icon.png\'}}">' + 
 									'</li>' + 
-									'<li class="recent-search-player" ng-repeat="player in search.players track by $index">' + 
-										'<span>{{player.displayName}}</span>' + 
-									'</li>' + 
 									'<li class="recent-search-mode">' + 
-										'<span>{{search.mode.displayName}}</span>' + 
+										'<span>{{search.mode.itemName}}</span>' + 
+									'</li>' + 
+									'<li class="recent-search-player" ng-repeat="player in search.players track by $index">' + 
+										'<span>{{player}}</span>' + 
 									'</li>' + 
 								'</ul>' + 
 							'</div>' + 

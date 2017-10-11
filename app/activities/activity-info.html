@@ -21,8 +21,8 @@
 						</span>
 					</div>
 					<div class="activity-info-container">
-						<div class="character-container" 
-							 ng-repeat="character in activityInfo.entries | orderBy: 'rankOrder' track by $index"
+						<div class="character-container"
+							 ng-repeat="character in activityInfo.entries | orderBy: '-orderByRankTypes.aggregateMedalScores.' + sortedBy track by $index"
 							 ng-click="selectPlayer($index)">
 							<div class="character" ng-class="{'selected' : $index == ctrl.m.selectedPlayerIndex}">
 								<!-- <img style="background-image: url('{{$root.const.bungieRoot}}{{character.characterInfo.emblemBackgroundPath}}');" /> -->
@@ -31,7 +31,8 @@
 								<div class="title-bar">
 									<div class="display-name">
 										<div class="player-class" data-playerName="{{character.characterInfo.displayName}}">
-											{{character.player.destinyUserInfo.displayName}}
+											{{character.player.destinyUserInfo.displayName}}<br/>
+											score: {{character.orderByRankTypes.aggregateMedalScores[sortedBy]}}
 										</div>
 									</div>
 									<div class="class-info">
@@ -58,29 +59,35 @@
 									<li ng-if="$index > 0 && $index < activityInfo.entries.length-1" class="guys avg glow on">A GUY</li>
 									<li ng-if="$index === activityInfo.entries.length-1" class="guys bad glow on">WORST GUY</li>
 									<li ng-click="goToCharacterPage(character)">View Character</li>
-									<li ng-repeat="stat in character.values | toArray | orderBy: 'basic.rank' track by $index"
+									<li ng-repeat="stat in character.values | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index"
 										ng-click="selectStat($index)"
-										ng-if="stat.hasMedal"
+										ng-if="stat.hasMedal && stat.rankTypes[sortedBy].rank"
 										ng-class-odd="'odd'">
 										<div class="rank-value">
-											<div class="medal {{stat.basic.className.toLowerCase()}}" 
-												ng-click="toggleLegend()"
+											<div class="medal {{stat.rankTypes[sortedBy].className.toLowerCase()}}"
 												ng-class="{'selected' : ctrl.m.selectedStat == $index}">
 												<div>
-													<span>#{{stat.basic.rank}}</span>
+													<span>#{{stat.rankTypes[sortedBy].rank}}</span>
 												</div>
 											</div>
-											<span>{{stat.basic.displayName}}:<span><span> {{stat.basic.displayValue}}<span>
+											<span>{{stat.displayName}}: </span><span>{{stat.rankTypes[sortedBy].displayValue}}</span>
+											<br>
+											<span>[</span>
+												<span class="best-value">Top: {{stat.bestValues[sortedBy].displayValue}}</span>
+											<span>]</span>
 										</div>
 									</li>
 								</ul>
 							</div>
-
-
 						</div>
 					</div>
 				</div>
-				<div class="button-container">
+				<div class="button-container">					
+					<div ng-click="setOrder('overAll')" class="btn-mobile-default">Over All</div>
+					<div ng-click="setOrder('percentOfHighest')" class="btn-mobile-default">Percent Of Over All</div>
+					<div ng-click="setOrder('avgStatPerMinuteValue')" class="btn-mobile-default">Avg Per Minute Played</div>
+					<div ng-click="setOrder('avgStatPerMinuteValueAsPercentOfHighest')" class="btn-mobile-default">Average per minute as % of Best</div>
+
 					<div ng-click="selectView('player')" class="btn-mobile-default" ng-class="{'selected': ctrl.m.selectedView == 'player'}">Player View</div>
 					<div ng-click="selectView('stats')" class="btn-mobile-default" ng-class="{'selected': ctrl.m.selectedView == 'stats'}">Stats View</div>
 				</div>
@@ -98,20 +105,19 @@
 				class="player-stat-container"
 				ng-class-odd="'odd'">
 				<div class="player-title-bar character-name">
-					<span>{{orderedStat[0].basic.displayName}}</span>
+					<span>{{orderedStat.displayName}}</span>
 				</div>
 				<ul class="stats-box">
-					<li ng-repeat="character in orderedStat.ordered | toArray | orderBy: 'basic.rank' track by $index">
+					<li ng-repeat="character in orderedStat.players | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index">
 						<div class="rank-value">
-							<div class="medal {{character.basic.className.toLowerCase()}}" 
-								ng-click="toggleLegend()"
+							<div class="medal {{character.rankTypes[sortedBy].className.toLowerCase()}}" 
 								ng-class="{'selected' : ctrl.m.selectedStat == $index}">
 								<div>
-									<span>#{{character.basic.rank}}</span>
+								<span>#{{character.rankTypes[sortedBy].rank}}</span>
 								</div>
 							</div>
 							<span class="character-name">{{character.destinyUserInfo.displayName}}</span><br/>
-							<span>Total:<span><span> {{character.basic.displayValue}}<span>
+							<span>Total:<span><span> {{character.rankTypes[sortedBy].displayValue}}<span>
 						</div>
 					</li>
 				</ul>
@@ -128,87 +134,41 @@
 					<span>{{character.player.destinyUserInfo.displayName}}</span>
 				</div>
 				<ul class="stats-box">
-					<li ng-repeat="stat in character.values | toArray | orderBy: 'basic.rank' track by $index"
+					<li ng-repeat="stat in character.values | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index"
 						ng-click="selectStat($index)"
 						ng-if="stat.hasMedal">
 						<div class="rank-value">
-							<div class="medal {{stat.basic.className.toLowerCase()}}" 
-								ng-click="toggleLegend()"
+							<div class="medal {{stat.rankTypes[sortedBy].className.toLowerCase()}}" 
 								ng-class="{'selected' : ctrl.m.selectedStat == $index}">
 								<div>
-									<span>#{{stat.basic.rank}}</span>
+									<span>#{{stat.rankTypes[sortedBy].rank}}</span>
 								</div>
 							</div>
-							<span>{{stat.basic.displayName}}:<span><span> {{stat.basic.displayValue}}<span>
+							<span>{{stat.displayName}}:<span><span> {{stat.rankTypes[sortedBy].displayValue}}<span>
+							<span>[</span>
+								<span class="best-value">Top: {{stat.bestValues[sortedBy].displayValue}}</span>
+							<span>]</span>
 						</div>
 					</li>
-					<li ng-repeat="extendedStat in character.extended.values | toArray | orderBy: 'basic.rank' track by $index"
+					<li ng-repeat="extendedStat in character.extended.values | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index"
 						ng-click="selectStat($index)"
 						ng-if="extendedStat.hasMedal">
 						<div class="rank-value">
-							<div class="medal {{extendedStat.basic.className.toLowerCase()}}" 
-								ng-click="toggleLegend()"
+							<div class="medal {{extendedStat.rankTypes[sortedBy].className.toLowerCase()}}" 
 								ng-class="{'selected' : ctrl.m.selectedStat == $index}">
 								<div>
-									<span>#{{extendedStat.basic.rank}}</span>
+									<span>#{{extendedStat.rankTypes[sortedBy].rank}}</span>
 								</div>
 							</div>
-							<span>{{extendedStat.basic.displayName}}:<span><span> {{extendedStat.basic.displayValue}}<span>
+							<span>{{extendedStat.displayName}}:<span><span> {{extendedStat.rankTypes[sortedBy].displayValue}}<span>
+							<span>[</span>
+								<span class="best-value">Top: {{extendedStat.bestValues[sortedBy].displayValue}}</span>
+							<span>]</span>
 						</div>
 					</li>
 				</ul>
 				<div class="stat-spacer" style="width: 100%; height:20px; background: #000;"></div>
 			</div>
-		</div>
-	</div>
-
-	<div id="medal-legend-container" ng-if="ctrl.m.showLegend">
-		<div class="medal-legend">
-			<div class="guys best glow on">Best Guy</div>
-			<div class="medal-stat-box">
-				<div class="medal-description">
-					<div class="medal-player">
-						<span>{{activityInfo.topMedalList[0].playerName}}</span>
-					</div>
-					<div class="stat-list">
-						<div ng-repeat="medal in activityInfo.topMedalList[0].medals | toArray | orderBy: '-weight' track by $index"
-							class="medal {{medal.className}}">
-							<span>{{medal.count}}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="guys">Guys</div>
-			<div ng-repeat="player in activityInfo.topMedalList | orderBy: -playersMedalScore | limitTo: activityInfo.topMedalList.length-1 track by $index"
-					class="medal-stat-box"
-					ng-if="$index !== 0">
-				<div class="medal-description">
-					<div class="medal-player">
-						<span>{{player.playerName}}</span>
-					</div>
-					<div class="stat-list">
-						<div ng-repeat="medal in player.medals | toArray | orderBy: '-weight' track by $index"
-								class="medal {{medal.className}}">
-								<span>{{medal.count}}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="guys bad glow on" animated-glow is-active="true" delay="1000">Worst Guy</div>
-			<div class="medal-stat-box">
-				<div class="medal-description">
-					<div class="medal-player">
-						<span>{{activityInfo.topMedalList[activityInfo.topMedalList.length-1].playerName}}</span>
-					</div>
-					<div class="stat-list">
-						<div ng-repeat="medal in activityInfo.topMedalList[activityInfo.topMedalList.length-1].medals | toArray | orderBy: '-weight' track by $index"
-							class="medal {{medal.className}}">
-							<span>{{medal.count}}</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div ng-click="toggleLegend()" class="btn-mobile-default">Close</div>
 		</div>
 	</div>
 </div>
