@@ -12,6 +12,7 @@ var manifestService = require('./nodeServices/ManifestService');
 var activityMatch = require('./nodeServices/ActivityMatchService');
 var playerProfile = require('./nodeServices/PlayerProfileService');
 var itemsService = require('./nodeServices/itemsService');
+var jsonLoaderService = require('./nodeServices/JsonLoaderService');
 // Create our Express application
 var app = express();
 var destinyBaseRequest = request.defaults({headers: {'X-API-Key': config.default.credentials.apiKey}});
@@ -209,7 +210,7 @@ router.get('/getCharacterInfoDetails', function(req, res, next){
 
         if(jsonResponse && jsonResponse.Response && jsonResponse.Response.equipment){
           //get equipped items
-          itemsService.ItemsService.getItems(req.query.membershipId, jsonResponse.Response.equipment.data.items, function(err, itemResults){
+          itemsService.ItemsService.GetItems(req.query.membershipId, jsonResponse.Response.equipment.data.items, function(err, itemResults){
             if(!err){
               jsonResponse.Response.equipment.data = itemResults;
               result = jsonResponse;
@@ -259,6 +260,7 @@ var httpPort = process.env.PORT || 3000;
 // Start the http server
 httpServer.listen(httpPort, function(err) {
     console.log(err, httpServer.address());
+    manifestService.ManifestService.initialize();
 }); 
 
 // Start the https server

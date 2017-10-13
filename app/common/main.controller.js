@@ -58,6 +58,8 @@ angular.module('fireTeam.common')
 		m.showWarningMessage = false;
 		m.showLoadingStatusMessages = false;
 		m.showErrorMessage = false;
+		m.showCancelButton = false;
+		m.queuedSearch = false;
 
 		$scope.selectPlatform = selectPlatform;
 		$scope.selectActivity = selectActivity;
@@ -73,7 +75,7 @@ angular.module('fireTeam.common')
 		$scope.showMoreResults = showMoreResults;
 		$scope.orderByDate = orderByDate;
 
-		function updateCurrentStateParams(params){
+		function createDeepLink(params){
 			var absUrl = $location.absUrl() + '?';
 			var stateParams = {};
 			angular.forEach(params, function(val, key){
@@ -84,12 +86,17 @@ angular.module('fireTeam.common')
 			});
 
 			m.deepLink = absUrl.substring(0, absUrl.length-1);
-			m.currentStateParams = stateParams;
 		}
 
 		$rootScope.$on("$stateChangeSuccess", function (event, toState, toParams, fromState, fromParams){
+			m.currentStateParams = toParams;
+			if(m.manifestUpdating){
+				m.queuedSearch = true;
+				return;
+			}
 			switch(toState.name){
 				case 'search':
+					m.showCancelButton = true;
 					var membersArray = toParams.members ? toParams.members.split(';') : null;
 					if(!membersArray){ return };
 					m.playersArrays = [];
@@ -119,14 +126,10 @@ angular.module('fireTeam.common')
 				break;
 			}
 
-			updateCurrentStateParams(toParams);
+			createDeepLink(toParams);
 			googleAnalyticsService.pageLoad($location.absUrl(), toState.name);
-			$location.url($location.path());
+			//$location.url($location.path());
 		})
-
-		// $rootScope.$on("$stateChangeStart", function (event, toState, toParams, fromState, fromParams) {
-			
-		// });
 
 		$scope.$watch('m.playersArrays', function(newVal, oldVal){
 			if(newVal.length <= 1 && newVal[0].isPlaceHolder){
@@ -146,7 +149,7 @@ angular.module('fireTeam.common')
 		init();
 
 		function init(){
-			//buildGameModeObj();
+			checkDestinyManifestInfo();
 			checkRecentSearches();
 			m.pageInitialized = true;
 		}
@@ -346,7 +349,6 @@ angular.module('fireTeam.common')
 			m.showLoadingStatusMessages = false;
 			m.showWarningMessage = true;
 			m.warningMessage = 'User cancelled search.'
-			m.isLoadingData = false;
 			activityModelFactory.cancelAllPromises().then(function(response){
 				console.log(response);
 			});
@@ -394,31 +396,22 @@ angular.module('fireTeam.common')
 		function getMembersActivitiesMatchList(membersOptions){
 			m.showLoadingStatusMessages = true;
 			m.showWarningMessage = false;
-			m.loadingStatusMessage = 'Checking for updates to the Destiny manifest...';
-		
-			activityModelFactory.getUpdatedManifest().then(function(response){
-				m.loadingStatusMessage = 'Getting activity match results...';
+			m.loadingStatusMessage = 'Getting activity match results...';
+			
+			activityModelFactory.getPostGameCarnageReportActivitiesForFireteam(membersOptions).then(function(response){
+				m.loadingStatusMessage = '';
+				m.showLoadingStatusMessages = false;
+				m.isLoadingData = false;
+
+				if(!response){return;}
 
 				if(response.ErrorCode){
-					m.warningMessage = 'Unable to get current Destiny manifests.';
-					m.showWarningMessage = true;
+					throwError({Error: "An error occured while fetching results"});
 				}
 
-				activityModelFactory.getPostGameCarnageReportActivitiesForFireteam(membersOptions).then(function(response){
-					m.loadingStatusMessage = '';
-					m.showLoadingStatusMessages = false;
-					m.isLoadingData = false;
-
-					if(!response){return;}
-
-					if(response.ErrorCode){
-						throwError({Error: "An error occured while fetching results"});
-					}
-
-					if(response.Response && response.Response.activityMatchListResults){
-						activityResultsValidation(response.Response.activityMatchListResults);
-					}
-				});
+				if(response.Response && response.Response.activityMatchListResults){
+					activityResultsValidation(response.Response.activityMatchListResults);
+				}
 			});
 		}
 
@@ -435,7 +428,6 @@ angular.module('fireTeam.common')
 			}
 
 			angular.extend(m.fireTeamActivityResults, activityMembersMatchedResults);
-			console.log(activityMembersMatchedResults);
 			m.activitiesDisplayed = m.fireTeamActivityResults.length < m.activityLookupPerSearch ? m.fireTeamActivityResults.length : m.activityLookupPerSearch;
 			if(!m.isNewSearch){
 				m.lastSuccessSearchCriteria = m.searchCriteria;
@@ -531,6 +523,26 @@ angular.module('fireTeam.common')
 		function orderByDate(item) {
 		    return -new Date(item.period);
 		};
+
+		function checkDestinyManifestInfo(){
+			m.showCancelButton = false;
+			m.showLoadingStatusMessages = true;
+			m.showWarningMessage = false;
+			m.loadingStatusMessage = 'Checking for updates to the Destiny manifest...';
+			m.isLoadingData = true;
+			activityModelFactory.getUpdatedManifest().then(function(response){
+				if(response.ErrorCode){
+					m.warningMessage = 'Unable to get current Destiny manifests.';
+					m.showWarningMessage = true;
+				}
+				m.isLoadingData = false;
+				m.showLoadingStatusMessages = false;
+				if(m.queuedSearch){
+					$state.go('search', m.currentStateParams, { reload: true });
+					m.queuedSearch = false;
+				}
+			});
+		}
 	};
 
 

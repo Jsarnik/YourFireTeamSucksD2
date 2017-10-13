@@ -80,14 +80,14 @@ angular
 								}
 							}
 
-							var avgStatPerMinuteValue = (statValue.basic.value / entryValue.values.activityDurationSeconds.basic.value) * 60;
+							var avgStatPerMinuteValue = (statValue.basic.value / entryValue.values.timePlayedSeconds.basic.value) * 60;
 							statsObject[statKey].bestValues.overAll.value = statValue.basic.value > statsObject[statKey].bestValues.overAll.value ? statValue.basic.value : statsObject[statKey].bestValues.overAll.value;
 							statsObject[statKey].bestValues.avgStatPerMinuteValue.value = avgStatPerMinuteValue > statsObject[statKey].bestValues.avgStatPerMinuteValue.value ? avgStatPerMinuteValue : statsObject[statKey].bestValues.avgStatPerMinuteValue.value;
 
 							var playerValue = {
 								characterId: entryValue.characterId,
 								destinyUserInfo: entryValue.player.destinyUserInfo,
-								activityDurationSeconds: entryValue.values.activityDurationSeconds.basic.value,
+								timePlayedSeconds: entryValue.values.timePlayedSeconds.basic.value,
 								rankTypes: {
 									overAll:{
 										value: statValue.basic.value,
@@ -118,7 +118,6 @@ angular
 				}
 
 				function calculateRankTypes(unOrderedStatRanksObject){
-					debugger;
 					angular.forEach(unOrderedStatRanksObject, function(statVal, statKey){
 						var reverseOrder = isReverseOrder(statKey);
 						var prevValue = null;
@@ -141,7 +140,19 @@ angular
 					scope.activityInfo.playerStatsByOrderedList = unOrderedStatRanksObject;
 
 					function isMedalStatOverride(statName){
-						return statName.toLowerCase().indexOf('seconds') === -1;
+						var excludedStatsEnum = [
+							"activityDurationSeconds",
+							"combatRating",
+							"completed",
+							"completionReason",
+							"fireteamId",
+							"team",
+							"timePlayedSeconds",
+							"playerCount",
+							"startSeconds"
+						];
+
+						return excludedStatsEnum.indexOf(statName) === -1;
 					}
 
 					function areSameValues(check1, check2){
@@ -202,7 +213,6 @@ angular
 						angular.forEach(entriesArray, function(entryValue, entryKey){
 							angular.forEach(orderedStatsObject, function(statValue, statKey){
 								if(entryKey.toLowerCase() === statKey.toLowerCase()){
-									debugger;
 									angular.extend(entryValue, statValue);
 									delete entryValue.players;
 									angular.forEach(statValue.players, function(player){

@@ -2,6 +2,12 @@
 	<div class="activity-selection-container">
 		<div class="activity-selection-container activity-selection">
 			<div class="spacing">
+					<div class="button-container">					
+							<div ng-click="setOrder('overAll')" class="btn-mobile-default">Over All</div>
+							<div ng-click="setOrder('percentOfHighest')" class="btn-mobile-default">Percent Of Over All</div>
+							<div ng-click="setOrder('avgStatPerMinuteValue')" class="btn-mobile-default">Avg Per Minute Played</div>
+							<div ng-click="setOrder('avgStatPerMinuteValueAsPercentOfHighest')" class="btn-mobile-default">Average per minute as % of Best</div>
+						</div>
 				<div class="bg" ng-style="{'background-image':'url(http://www.bungie.net{{activityInfo.definitions.pgcrImage}})'}"></div>
 				<div class="activity-container-information">					
 					<div class="activity-icon-container" style="position: relative; height: 100%; left: 0;">
@@ -26,8 +32,6 @@
 							 ng-click="selectPlayer($index)">
 							<div class="character" ng-class="{'selected' : $index == ctrl.m.selectedPlayerIndex}">
 								<!-- <img style="background-image: url('{{$root.const.bungieRoot}}{{character.characterInfo.emblemBackgroundPath}}');" /> -->
-								<div class="medal">
-								</div>
 								<div class="title-bar">
 									<div class="display-name">
 										<div class="player-class" data-playerName="{{character.characterInfo.displayName}}">
@@ -82,92 +86,88 @@
 						</div>
 					</div>
 				</div>
-				<div class="button-container">					
-					<div ng-click="setOrder('overAll')" class="btn-mobile-default">Over All</div>
-					<div ng-click="setOrder('percentOfHighest')" class="btn-mobile-default">Percent Of Over All</div>
-					<div ng-click="setOrder('avgStatPerMinuteValue')" class="btn-mobile-default">Avg Per Minute Played</div>
-					<div ng-click="setOrder('avgStatPerMinuteValueAsPercentOfHighest')" class="btn-mobile-default">Average per minute as % of Best</div>
-
-					<div ng-click="selectView('player')" class="btn-mobile-default" ng-class="{'selected': ctrl.m.selectedView == 'player'}">Player View</div>
-					<div ng-click="selectView('stats')" class="btn-mobile-default" ng-class="{'selected': ctrl.m.selectedView == 'stats'}">Stats View</div>
-				</div>
 			</div>
 		</div>
 	</div>
-
-	<div id="PlayerActivityStats">
-		<div class="bg" ng-style="{'background-image':'url(http://www.bungie.net{{activityInfo.definitions.pgcrImage}})'}">
-		<div ng-show="m.isLoadingCarnageReport">Gathering activity informaton, please wait...</div>
-
-		<div id="SortByStatName" ng-show="ctrl.m.selectedView == 'stats'">
-			<div ng-repeat="orderedStat in activityInfo.playerStatsByOrderedList track by $index"
-				ng-if="orderedStat.hasMedal"
-				class="player-stat-container"
-				ng-class-odd="'odd'">
-				<div class="player-title-bar character-name">
-					<span>{{orderedStat.displayName}}</span>
-				</div>
-				<ul class="stats-box">
-					<li ng-repeat="character in orderedStat.players | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index">
-						<div class="rank-value">
-							<div class="medal {{character.rankTypes[sortedBy].className.toLowerCase()}}" 
-								ng-class="{'selected' : ctrl.m.selectedStat == $index}">
-								<div>
-								<span>#{{character.rankTypes[sortedBy].rank}}</span>
-								</div>
-							</div>
-							<span class="character-name">{{character.destinyUserInfo.displayName}}</span><br/>
-							<span>Total:<span><span> {{character.rankTypes[sortedBy].displayValue}}<span>
-						</div>
-					</li>
-				</ul>
-				<div class="stat-spacer" style="width: 100%; height:20px; background: #000;"></div>
-			</div>
+	<div>
+		<div>
+				<div ng-click="selectView('player')" class="btn-mobile-default" ng-class="{'selected': ctrl.m.selectedView == 'player'}">Player View</div>
+				<div ng-click="selectView('stats')" class="btn-mobile-default" ng-class="{'selected': ctrl.m.selectedView == 'stats'}">Stats View</div>
 		</div>
+		<div id="PlayerActivityStats">
+			<div class="bg" ng-style="{'background-image':'url(http://www.bungie.net{{activityInfo.definitions.pgcrImage}})'}">
+			<div ng-show="m.isLoadingCarnageReport">Gathering activity informaton, please wait...</div>
 
-		<div id="SortByPlayer" ng-show="ctrl.m.selectedView == 'player'">
-			<div id="#{{character.player.destinyUserInfo.displayName}}" 
-				ng-repeat="character in activityInfo.entries track by $index"
-				class="player-stat-container"
-				ng-class-odd="'odd'">
-				<div class="player-title-bar character-name">
-					<span>{{character.player.destinyUserInfo.displayName}}</span>
+			<div id="SortByStatName" ng-show="ctrl.m.selectedView == 'stats'">
+				<div ng-repeat="orderedStat in activityInfo.playerStatsByOrderedList track by $index"
+					ng-if="orderedStat.hasMedal"
+					class="player-stat-container"
+					ng-class-odd="'odd'">
+					<div class="player-title-bar character-name">
+						<span>{{orderedStat.displayName}}</span>
+					</div>
+					<ul class="stats-box">
+						<li ng-repeat="character in orderedStat.players | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index">
+							<div class="rank-value">
+								<div class="medal {{character.rankTypes[sortedBy].className.toLowerCase()}}" 
+									ng-class="{'selected' : ctrl.m.selectedStat == $index}">
+									<div>
+									<span>#{{character.rankTypes[sortedBy].rank}}</span>
+									</div>
+								</div>
+								<span class="character-name">{{character.destinyUserInfo.displayName}}</span><br/>
+								<span>Total:<span><span> {{character.rankTypes[sortedBy].displayValue}}<span>
+							</div>
+						</li>
+					</ul>
+					<div class="stat-spacer" style="width: 100%; height:20px; background: #000;"></div>
 				</div>
-				<ul class="stats-box">
-					<li ng-repeat="stat in character.values | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index"
-						ng-click="selectStat($index)"
-						ng-if="stat.hasMedal">
-						<div class="rank-value">
-							<div class="medal {{stat.rankTypes[sortedBy].className.toLowerCase()}}" 
-								ng-class="{'selected' : ctrl.m.selectedStat == $index}">
-								<div>
-									<span>#{{stat.rankTypes[sortedBy].rank}}</span>
+			</div>
+
+			<div id="SortByPlayer" ng-show="ctrl.m.selectedView == 'player'">
+				<div id="#{{character.player.destinyUserInfo.displayName}}" 
+					ng-repeat="character in activityInfo.entries track by $index"
+					class="player-stat-container"
+					ng-class-odd="'odd'">
+					<div class="player-title-bar character-name">
+						<span>{{character.player.destinyUserInfo.displayName}}</span>
+					</div>
+					<ul class="stats-box">
+						<li ng-repeat="stat in character.values | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index"
+							ng-click="selectStat($index)"
+							ng-if="stat.hasMedal">
+							<div class="rank-value">
+								<div class="medal {{stat.rankTypes[sortedBy].className.toLowerCase()}}" 
+									ng-class="{'selected' : ctrl.m.selectedStat == $index}">
+									<div>
+										<span>#{{stat.rankTypes[sortedBy].rank}}</span>
+									</div>
 								</div>
+								<span>{{stat.displayName}}:<span><span> {{stat.rankTypes[sortedBy].displayValue}}<span>
+								<span>[</span>
+									<span class="best-value">Top: {{stat.bestValues[sortedBy].displayValue}}</span>
+								<span>]</span>
 							</div>
-							<span>{{stat.displayName}}:<span><span> {{stat.rankTypes[sortedBy].displayValue}}<span>
-							<span>[</span>
-								<span class="best-value">Top: {{stat.bestValues[sortedBy].displayValue}}</span>
-							<span>]</span>
-						</div>
-					</li>
-					<li ng-repeat="extendedStat in character.extended.values | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index"
-						ng-click="selectStat($index)"
-						ng-if="extendedStat.hasMedal">
-						<div class="rank-value">
-							<div class="medal {{extendedStat.rankTypes[sortedBy].className.toLowerCase()}}" 
-								ng-class="{'selected' : ctrl.m.selectedStat == $index}">
-								<div>
-									<span>#{{extendedStat.rankTypes[sortedBy].rank}}</span>
+						</li>
+						<li ng-repeat="extendedStat in character.extended.values | toArray | orderBy: 'rankTypes.' + sortedBy + '.rank' track by $index"
+							ng-click="selectStat($index)"
+							ng-if="extendedStat.hasMedal">
+							<div class="rank-value">
+								<div class="medal {{extendedStat.rankTypes[sortedBy].className.toLowerCase()}}" 
+									ng-class="{'selected' : ctrl.m.selectedStat == $index}">
+									<div>
+										<span>#{{extendedStat.rankTypes[sortedBy].rank}}</span>
+									</div>
 								</div>
+								<span>{{extendedStat.displayName}}:<span><span> {{extendedStat.rankTypes[sortedBy].displayValue}}<span>
+								<span>[</span>
+									<span class="best-value">Top: {{extendedStat.bestValues[sortedBy].displayValue}}</span>
+								<span>]</span>
 							</div>
-							<span>{{extendedStat.displayName}}:<span><span> {{extendedStat.rankTypes[sortedBy].displayValue}}<span>
-							<span>[</span>
-								<span class="best-value">Top: {{extendedStat.bestValues[sortedBy].displayValue}}</span>
-							<span>]</span>
-						</div>
-					</li>
-				</ul>
-				<div class="stat-spacer" style="width: 100%; height:20px; background: #000;"></div>
+						</li>
+					</ul>
+					<div class="stat-spacer" style="width: 100%; height:20px; background: #000;"></div>
+				</div>
 			</div>
 		</div>
 	</div>

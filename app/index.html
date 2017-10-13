@@ -47,6 +47,7 @@
 		<script type="text/javascript" src="common/directives/yfs-tooltip.directive.js"></script>
 		<script type="text/javascript" src="common/directives/disabled-div.directive.js"></script>
 		<script type="text/javascript" src="common/directives/highlighted-column.directive.js"></script>
+		<script type="text/javascript" src="common/directives/loading-overlay.directive.js"></script>
 		<script type="text/javascript" src="services/ga.service.js"></script>
 	</head>
 	<body ng-controller="mainCtrl">
@@ -54,12 +55,12 @@
 			<div class="search-container">
 				<div class="search-block">
 					<div class="bg"></div>
-					<div class="disabled-div" ng-if="m.isLoadingData">
+					<!-- <div class="disabled-div" ng-if="m.isLoadingData">
 						<div class="disabled-bg"></div>
 						<div id="CancelSearch" class="btn-mobile-default" tabindex="-1" ng-click="cancelSearch()">
 							Cancel
 						</div>
-					</div>
+					</div> -->
 					<div class="search-content">
 						<div class="platform-type-container">
 							<div class="platform-selection" ng-class="{'selected' : m.selectedPlatform.id !== platform.id}" ng-repeat="platform in m.platformTypes track by $index" ng-click="selectPlatform(platform)">
@@ -109,5 +110,10 @@
 			<span style="float:right;"><a class="about" href="/#!/about">About</a></span>
 		</div>
 	</div>
+	<loading-overlay message="{{m.loadingStatusMessage}}" ng-if="m.isLoadingData">
+			<div ng-if="m.showCancelButton" id="CancelSearch" class="btn-mobile-default" tabindex="-1" ng-click="cancelSearch()">
+				Cancel
+			</div>
+	</loading-overlay>
 	</body>
 </html>

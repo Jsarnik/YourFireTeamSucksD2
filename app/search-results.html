@@ -52,11 +52,11 @@
 					 ng-repeat="character in activity.entries track by $index">
 					<div class="character">
 						<!-- <img ng-src="{{const.bungieRoot}}{{character.player.destinyUserInfo.iconPath}}" /> -->
-						<div class="medal"></div>
 						<div class="title-bar">
 							<div class="display-name">
 								<div class="player-class" data-playerName="{{character.characterInfo.displayName}}">
-									{{character.player.destinyUserInfo.displayName}}
+									<span>{{character.player.destinyUserInfo.displayName}}</span>
+									<span>&nbsp;</span>
 								</div>
 							</div>
 							<div class="class-info">

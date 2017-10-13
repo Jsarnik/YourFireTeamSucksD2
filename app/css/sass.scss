@@ -511,14 +511,17 @@ input.player-input {
     top:0; 
     left: 0; 
     opacity: .5;    
+    background-size: cover;
 }
 
 .activity-selection-container .activity-selection .bg{
     z-index: -1; 
+    background-size: cover;
 } 
 
 .activity-selection-container .activity-selection .bg{
     opacity: .8;
+    background-size: cover;
 } 
 
 .activity-selection-container .activity-selection .activity-info-container{
@@ -574,7 +577,6 @@ input.player-input {
 
 .character{
     padding: 5px 0px 5px;
-    border: 1px solid #000;
     text-shadow: 0px 1px 0px #000;
     color: #fff;
     font-size: 110%;
@@ -590,13 +592,17 @@ input.player-input {
     .title-bar{
         display: inline-block;
         position: relative;
-        margin-left: 5px;
+        margin-left: 50px;
         vertical-align: middle;
         text-align: left;
         width: 80%;
 
         div{
             display: inline-block;
+
+            span{
+                display: block;
+            }
         }
 
         .display-name{
@@ -606,8 +612,10 @@ input.player-input {
         .class-info {
             color: #13fbff;
             text-align: right;
-            width: 23%;
+            width: 25%;
             display: inline-block;
+            top: 15px;
+            position: absolute;
 
             div:first-child{
                 font-size: 70%;
@@ -624,6 +632,7 @@ input.player-input {
             text-align: right;
             font-size: 85%;
             width: 100%;
+            display: block;
         }
     }
 
@@ -997,6 +1006,19 @@ div.medal{
     &:hover{
         background: #333333;
     }
+}
+
+@media screen and (min-width: 980px){
+    .activity-selection-container .activity-selection .activity-info-container{
+        float:none;
+        position: fixed;
+        top: 0;
+        right: 2%;
+        background: #bdbdbd;
+        border: 1px solid #000;
+        box-shadow: 0px 0px 2px 1px #000;
+        padding: 7px;
+    }Zo]\/' vcAd f\ Z =-'
 }
 
 @media screen and (max-width: 980px) {
@@ -1680,4 +1702,36 @@ div.tooltip{
 
 .best-value{
    color: #2dcf09;
+}
+
+#loading-overlay-container{
+    position: fixed;
+    top:0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+
+    .bg{
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background: #3a3a3a;
+        opacity: .5;
+        background-size: cover;
+    }
+
+    .loading-overlay-content{
+        width: 25%;
+        top: 200px;
+        text-align: center;
+        background: #6796dc;
+        border-radius: 3px;
+        box-shadow: 1px 1px 5px 1px #000;
+        text-shadow: 0px 1px 0px #000;
+        margin: 0 auto;
+        padding: 50px;
+        border: 1px solid #000;
+    }
 }

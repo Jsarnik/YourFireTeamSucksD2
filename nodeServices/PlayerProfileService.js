@@ -12,13 +12,15 @@ class PlayerProfileService {
             var cacheKey = instance.getCacheKey(player.player.destinyUserInfo.membershipId);
             appCache.AppCache.Get(cacheKey, function(err, cachedPlayerInfo){
                 if(!err && cachedPlayerInfo){
-                    player.characterInfo = cachedPlayerInfo[player.characterId];
+                    player.characterInfo = cachedPlayerInfo;
                     next();
                 }else{
                     instance.characterInfoRequest(player, function(err, characterInfo){
                         player.characterInfo = characterInfo;
                         if(!err){
                             appCache.AppCache.Set(cacheKey, characterInfo, 3600, (err, data) => { });
+                        }else{
+                            console.log('playerProfileService: line 23: ' + err);
                         }
                         next();
                     });
@@ -45,7 +47,7 @@ class PlayerProfileService {
                 try{
                     jsonBody = JSON.parse(body);
                 }catch(e){
-                    console.log(e);
+                    console.log('playerProfileService: line 50: ' + e);
                 }
                 if (jsonBody && jsonBody.Response && jsonBody.Response.characters && jsonBody.Response.characters.data[player.characterId]){
                     characterInfo = jsonBody.Response.characters.data[player.characterId];

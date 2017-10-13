@@ -5,6 +5,8 @@ var config = require('../config')
 var async = require('async');
 var manifestService = require('./ManifestService');
 var playerProfile = require('./PlayerProfileService');
+var jsonLoaderService = require('./JsonLoaderService');
+var path = require('path');
 
 var startSeconds;
 
@@ -148,12 +150,10 @@ class ActivityMatchService {
                     try{
                         jsonBody = JSON.parse(body);
                     }catch(e){
-                        console.log(e)
+                        console.log('activityMatchService: line 151: ' + e)
                     }
                     if(jsonBody && jsonBody.Response){
-                        console.log('getPostGameCarnageReport Response:')
                         playerProfile.PlayerProfileService.appendActivityPlayersCharacterInformation(jsonBody.Response, function(err, activityDetailsWithCharacterProfiles){
-                            console.log('appendActivityPlayersCharacterInformation Response:')
                             activityPostGameCarnageResults.push(activityDetailsWithCharacterProfiles);
                             next();
                         });
@@ -172,26 +172,21 @@ class ActivityMatchService {
             nextFn(null, activityMatchList); return;
         };
 
-        var queryString = "SELECT DISTINCT json FROM DestinyActivityDefinition WHERE json";
-        for (var i =0; i < activityMatchList.length; i++){
-            if(activityMatchList[i].activityDetails){
-                if(i === 0){
-                    queryString += " LIKE '%" + activityMatchList[i].activityDetails.referenceId + "%'";
-                }
-                else{
-                    queryString += " OR json LIKE '%" + activityMatchList[i].activityDetails.referenceId + "%'";
-                }
-            }
-        };
-        manifestService.ManifestService.queryManifest('world.content', queryString, function(err, activityDetailsResults){
+        var DestinyActivityDefinitionTable = {};
+        var tableJsonPath = path.join(__dirname, '../models/DestinyActivityDefinition.json');
+        jsonLoaderService.JsonLoaderService.GetJson(tableJsonPath, function(err, obj){
+            DestinyActivityDefinitionTable = obj.DestinyActivityDefinition;
             activityMatchList.forEach(function(activity){
-                activityDetailsResults.forEach(function(definition){
-                    if(definition && activity.activityDetails.referenceId == definition.hash){
-                        activity.definitions = definition;
-                    }
-                });
+                var hashId = activity.activityDetails.referenceId;
+                var definition = {};
+
+                if(DestinyActivityDefinitionTable[hashId]){
+                    definition = DestinyActivityDefinitionTable[hashId];
+                };
+                
+                activity.definitions = definition;
             });
-            nextFn(null, activityMatchList);
+            nextFn(null, activityMatchList); 
         });
     }
 }

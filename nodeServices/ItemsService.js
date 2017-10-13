@@ -6,7 +6,7 @@ var async = require('async');
 var manifestService = require('./ManifestService');
 
 class ItemsService {
-    getItems(membershipId, itemsArray, doneFn){
+    GetItems(membershipId, itemsArray, doneFn){
         var instance = this;
         var itemsResultObject = {};
 
@@ -32,7 +32,7 @@ class ItemsService {
                     try{
                         jsonBody = JSON.parse(body);
                     }catch(e){
-                        console.log(e);
+                        console.log('ItemsService: line 35: ' + e);
                     }
                     
                     if (jsonBody && jsonBody.Response && jsonBody.Response){
